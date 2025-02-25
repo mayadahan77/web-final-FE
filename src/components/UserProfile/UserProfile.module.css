@@ -1,0 +1,62 @@
+.profileContainer {
+  display: flex;
+  align-items: center;
+  background-color: #f4f4f4;
+  padding: 15px;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 400px;
+  gap: 10px;
+}
+
+.imageContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: 15px;
+}
+
+.profilePic {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  flex: 1;
+}
+
+input {
+  margin-bottom: 8px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 100%;
+}
+
+.buttonContainer {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.editBtn, .saveBtn {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.editBtn {
+  background-color: #007bff;
+  color: white;
+}
+
+.saveBtn {
+  background-color: #28a745;
+  color: white;
+}
