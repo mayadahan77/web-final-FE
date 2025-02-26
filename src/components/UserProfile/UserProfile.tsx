@@ -2,7 +2,7 @@ import { FC, useState } from "react";
 import UserProfileStyle from "./UserProfile.module.css";
 import Avatar from "../../assets/avatar.png";
 
-interface User {
+export interface User {
   _id?: string;
   email: string;
   userName: string;
@@ -30,47 +30,39 @@ const UserProfile: FC<{ user: User }> = ({ user }) => {
   };
 
   return (
-    <div className={UserProfileStyle.profileContainer}>
-      <div className={UserProfileStyle.imageContainer}>
-        <img src={userData.imgUrl ? userData.imgUrl : Avatar} alt="User" className={UserProfileStyle.profilePic} />
-        {editMode && (
-          <input
-            type="text"
-            name="imgUrl"
-            value={userData.imgUrl || ""}
-            onChange={handleChange}
-            placeholder="Image URL"
-          />
-        )}
-      </div>
-
-      <div className={UserProfileStyle.userInfo}>
-        {editMode ? (
-          <>
-            <input type="text" name="fullName" value={userData.fullName} onChange={handleChange} />
-            <input type="text" name="userName" value={userData.userName} onChange={handleChange} />
-            <input type="email" name="email" value={userData.email} onChange={handleChange} />
-            <input type="password" name="password" value={userData.password} onChange={handleChange} />
-          </>
-        ) : (
-          <>
-            <h2>{userData.fullName}</h2>
-            <p>Username: {userData.userName}</p>
-            <p>Email: {userData.email}</p>
-            <p>Password: *******</p>
-          </>
-        )}
-
-        <div className={UserProfileStyle.buttonContainer}>
+    <div className={UserProfileStyle.pageContainer}>
+      <div className={UserProfileStyle.profileContainer}>
+        <div className={UserProfileStyle.userInfo}>
           {editMode ? (
-            <button className={UserProfileStyle.saveBtn} onClick={handleSave}>
-              Save
-            </button>
+            <>
+              <input type="text" name="fullName" value={userData.fullName} onChange={handleChange} />
+              <input type="text" name="userName" value={userData.userName} onChange={handleChange} />
+              <input type="email" name="email" value={userData.email} onChange={handleChange} />
+              <input type="password" name="password" value={userData.password} onChange={handleChange} />
+            </>
           ) : (
-            <button className={UserProfileStyle.editBtn} onClick={() => setEditMode(true)}>
-              Edit
-            </button>
+            <>
+              <h2>{userData.fullName}</h2>
+              <p>Username: {userData.userName}</p>
+              <p>Email: {userData.email}</p>
+              <p>Password: *******</p>
+            </>
           )}
+
+          <div className={UserProfileStyle.buttonContainer}>
+            {editMode ? (
+              <button className={UserProfileStyle.saveBtn} onClick={handleSave}>
+                Save
+              </button>
+            ) : (
+              <button className={UserProfileStyle.editBtn} onClick={() => setEditMode(true)}>
+                Edit
+              </button>
+            )}
+          </div>
+        </div>
+        <div className={UserProfileStyle.imageContainer}>
+          <img src={userData.imgUrl ? userData.imgUrl : Avatar} alt="User" className={UserProfileStyle.profilePic} />
         </div>
       </div>
     </div>

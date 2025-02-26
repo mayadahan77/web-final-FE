@@ -1,23 +1,24 @@
 import { FC } from "react";
 import { Link } from "react-router-dom";
 import Users from "../../hooks/users";
-import NavBarStyle from "./NavBar.module.css";
+import SidenavStyle from "./Sidenav.module.css";
 import avatar from "../../assets/avatar.png";
 
-const Navbar: FC = () => {
+const Sidenav: FC = () => {
   return (
-    <div className={NavBarStyle.container}>
-      <div className={NavBarStyle.user}>
-        <img src={avatar} className={NavBarStyle.profilePic} />
+    <div className={SidenavStyle.container}>
+      <div className={SidenavStyle.user}>
+        <img src={avatar} className={SidenavStyle.profilePic} />
         {Users[0].fullName}
       </div>
-      <nav className={NavBarStyle.nav}>
+      <nav className={SidenavStyle.nav}>
         <Link to="/login">Login</Link>
         <Link to="/profile">Profile</Link>
         <Link to="/">Posts</Link>
+        <Link to="/SignUp">SignUp</Link>
       </nav>
     </div>
   );
 };
 
-export default Navbar;
+export default Sidenav;
