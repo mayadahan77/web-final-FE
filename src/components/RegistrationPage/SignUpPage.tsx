@@ -24,12 +24,10 @@ const SignUpPage: FC = () => {
         password,
       })
       .then((rsep) => {
-        console.log("maya ", rsep);
-
         localStorage.setItem("accessToken", rsep.data.accessToken);
         localStorage.setItem("refreshToken", rsep.data.refreshToken);
         localStorage.setItem("user", JSON.stringify(rsep.data));
-        // window.location.href = "/";
+        window.location.href = "/";
       });
   };
 

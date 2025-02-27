@@ -12,7 +12,7 @@
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  min-width: 30%;
+  min-width: 35%;
   max-width: 50%;  
   min-height: 270px;
   gap: 10px;
@@ -38,13 +38,23 @@
   text-align: left;
   flex: 1;
 }
+.formGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 2px;
+}
 
-input {
-  margin-bottom: 8px;
-  padding: 5px;
+.formGroup label {
+  width: 100px;
+  font-weight: bold;
+}
+
+.formGroup input {
+  flex: 1;
+  padding: 8px;
   border: 1px solid #ccc;
-  border-radius: 5px;
-  width: 100%;
+  border-radius: 4px;
 }
 
 .buttonContainer {

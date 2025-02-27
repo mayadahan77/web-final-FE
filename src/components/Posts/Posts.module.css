@@ -1,0 +1,27 @@
+.pageContainer {
+  display: flex;
+  justify-content: center; 
+  align-items: center;
+  margin-top: 10px;
+  flex-direction: column;
+}
+
+.postContainer {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  padding: 20px;
+  min-width: 80%;
+  gap: 10px;
+}
+
+.post{
+  display: flex;
+  align-items: top;
+  background-color: #fff;
+  padding: 20px;
+  min-width: 80%;
+  min-height: 150px;
+  border: 2px solid black;
+  gap: 10px;
+}
