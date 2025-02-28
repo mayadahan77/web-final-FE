@@ -16,7 +16,7 @@ const LoginPage: FC = () => {
       alert("Please enter both username and password");
     }
   };
-
+//TODO: add validtion
   return (
     <div className={LoginPageStyle.Container}>
       <div className={LoginPageStyle.Box}>

@@ -30,6 +30,7 @@ const SignUpPage: FC = () => {
         window.location.href = "/";
       });
   };
+  //TODO: add validtion
 
   return (
     <div className={LoginPageStyle.Container}>

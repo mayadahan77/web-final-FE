@@ -7,13 +7,12 @@
 
 .profileContainer {
   display: flex;
-  align-items: center;
+  justify-content: space-between;
   background-color: #fff;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  min-width: 35%;
-  max-width: 50%;  
+  min-width: 600px;
   min-height: 270px;
   gap: 10px;
 }
@@ -26,11 +25,24 @@
 }
 
 .profilePic {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  object-fit: cover;
+   width: 200px;
+   height: 200px;
+   align-self: center;
+   border-radius: 50%; 
 }
+
+.uploadPicInput{
+    display: none;
+}
+
+.uploadPicIcon{
+    position: absolute; 
+    bottom: 0px; 
+    right: 0px; 
+    cursor: pointer;
+    font-size: 22px;
+  }
+
 
 .userInfo {
   display: flex;

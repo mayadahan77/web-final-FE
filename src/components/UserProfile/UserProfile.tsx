@@ -1,9 +1,11 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import UserProfileStyle from "./UserProfile.module.css";
 import Avatar from "../../assets/avatar.png";
 import { IUser } from "../../Interfaces";
 import axios from "axios";
 import Loader from "../Loader";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faImage } from "@fortawesome/free-solid-svg-icons";
 
 const api = axios.create({
   baseURL: "http://localhost:3000",
@@ -14,14 +16,32 @@ const UserProfile: FC<{ user: IUser }> = ({ user }) => {
   const [userData, setUserData] = useState<IUser>(user);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // TODO : this error i loading and all the api calling is reptitve maybe extract to somwhere
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+    console.log("file ", selectedFile);
+
+    if (selectedFile) {
+      // Validate file type (only images allowed)
+      const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+
+      if (!validImageTypes.includes(selectedFile.type)) {
+        alert("Invalid file type! Please select an image (JPEG, PNG, GIF, WebP).");
+        return;
+      }
+      //setUserData({ ...userData, ["imgUrl"]: selectedFile }); // TODO: how to convert the file to img to send to the BE
+      setFile(selectedFile);
+    }
+  };
 
   useEffect(() => {
     const user = localStorage.getItem("user");
     if (user) {
       const userObj: IUser = JSON.parse(user);
-      console.log("users");
       setUserData(userObj);
     }
   }, []);
@@ -43,7 +63,7 @@ const UserProfile: FC<{ user: IUser }> = ({ user }) => {
 
       const response = await api.put(`/users/${userData._id}`, userData, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `JWT ${token}`,
           "Content-Type": "application/json",
         },
       });
@@ -67,7 +87,8 @@ const UserProfile: FC<{ user: IUser }> = ({ user }) => {
     onSave(userData);
     setEditMode(false);
   };
-
+//TODO: add validtion to the edit i was able to remove the email and the user name not good!
+// I dont understand how it is posible since there is some validtion in the BE
   return (
     <div className={UserProfileStyle.pageContainer}>
       <div className={UserProfileStyle.profileContainer}>
@@ -123,7 +144,26 @@ const UserProfile: FC<{ user: IUser }> = ({ user }) => {
           )}
         </div>
         <div className={UserProfileStyle.imageContainer}>
-          <img src={userData.imgUrl ? userData.imgUrl : Avatar} alt="User" className={UserProfileStyle.profilePic} />
+          <div style={{ display: "flex", justifyContent: "center", position: "relative" }}>
+            {/* Show selected image preview */}
+            <img src={file ? URL.createObjectURL(file) : Avatar} alt="User" className={UserProfileStyle.profilePic} />
+
+            {/* Hidden file input */}
+            <input
+              className={UserProfileStyle.uploadPicInput}
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              onChange={handleFileChange}
+            />
+
+            {/* Clickable icon to trigger file selection */}
+            <FontAwesomeIcon
+              className={UserProfileStyle.uploadPicIcon}
+              onClick={() => fileInputRef.current?.click()}
+              icon={faImage}
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -22,7 +22,6 @@ function App() {
     }
   }, []);
   // TODO: when update the user in the profil should re load the user data maybe create with a hoack?
-  
 
   return (
     <Router>
@@ -45,5 +44,5 @@ function App() {
     </Router>
   );
 }
-
+// TODO: when not login cant acsses posts and profile pages at all even via link
 export default App;
