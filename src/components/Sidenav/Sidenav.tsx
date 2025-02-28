@@ -5,12 +5,10 @@ import avatar from "../../assets/avatar.png";
 import { IUser } from "../../Interfaces";
 
 const handleLogout = () => {
-  // Clear user data and token
   localStorage.removeItem("accessToken");
   localStorage.removeItem("user");
 
-  // Redirect to login page
-  window.location.href = "/login"; // Refresh to enforce logout
+  window.location.href = "/login";
 };
 
 const Sidenav: FC<{ user: IUser }> = ({ user }) => {

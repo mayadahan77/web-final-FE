@@ -1,45 +1,77 @@
-import { FC, useState } from "react";
+import { FC } from "react";
+import axios from "axios";
+import LoginPageStyle from "./LoginPage.module.css";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-import LoginPageStyle from "./LoginPage.module.css"; 
+const schema = z.object({
+  email: z.string().email("Invalid email").min(1, "Email is required"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+type FormData = z.infer<typeof schema>;
+
+const api = axios.create({
+  baseURL: "http://localhost:3000",
+});
 
 const LoginPage: FC = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const { register, handleSubmit, formState } = useForm<FormData>({ resolver: zodResolver(schema) });
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    if (username && password) {
-      localStorage.setItem("user", JSON.stringify({ username }));
-      navigate("/");
-    } else {
-      alert("Please enter both username and password");
+  const onSubmit = async (data: FormData) => {
+    try {
+      const response = await api.post("/auth/login", data);
+      localStorage.setItem("accessToken", response.data.accessToken);
+      localStorage.setItem("refreshToken", response.data.refreshToken);
+
+      //TODO: login only return the ID of the user should i return it as well or should we do onther call?
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Signup failed", error);
     }
   };
-//TODO: add validtion
+  //TODO: maybe esxtract the form part of the signup page ant the edit user to a diffret component beacuse it is the same baysicly
+
   return (
     <div className={LoginPageStyle.Container}>
       <div className={LoginPageStyle.Box}>
-        <h2>Login</h2>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className={LoginPageStyle.inputField}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className={LoginPageStyle.inputField}
-        />
-        <button onClick={handleLogin} className={LoginPageStyle.Button}>
-          Login
-        </button>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <h2>Login</h2>
+          <div className={LoginPageStyle.error}>
+            {formState.errors.email && <div className="text-danger">{formState.errors.email.message}</div>}
+          </div>
+          <div className={LoginPageStyle.formGroup}>
+            <label>Email:</label>
+            <input
+              id="email"
+              type="text"
+              placeholder="Email"
+              {...register("email")}
+              className={LoginPageStyle.inputField}
+            />
+          </div>
+          <div className={LoginPageStyle.error}>
+            {formState.errors.password && <div className="text-danger">{formState.errors.password.message}</div>}
+          </div>
+          <div className={LoginPageStyle.formGroup}>
+            <label>Password:</label>
+            <input
+              id="password"
+              type="password"
+              placeholder="Password"
+              {...register("password")}
+              className={LoginPageStyle.inputField}
+            />
+          </div>
+          <button type="submit" className={LoginPageStyle.Button}>
+            login
+          </button>
+        </form>
         <div onClick={() => navigate("/SignUp")} className={LoginPageStyle.herf}>
-          Sign Up
+          SignUp
         </div>
       </div>
     </div>

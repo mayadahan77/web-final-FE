@@ -87,8 +87,8 @@ const UserProfile: FC<{ user: IUser }> = ({ user }) => {
     onSave(userData);
     setEditMode(false);
   };
-//TODO: add validtion to the edit i was able to remove the email and the user name not good!
-// I dont understand how it is posible since there is some validtion in the BE
+  //TODO: add validtion to the edit i was able to remove the email and the user name not good!
+  // I dont understand how it is posible since there is some validtion in the BE
   return (
     <div className={UserProfileStyle.pageContainer}>
       <div className={UserProfileStyle.profileContainer}>
