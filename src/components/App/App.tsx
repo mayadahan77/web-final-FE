@@ -16,12 +16,14 @@ function App() {
     const user = localStorage.getItem("user");
     if (user) {
       const userObj: IUser = JSON.parse(user);
-      console.log("users");
       setUser(userObj);
       setIsAuthenticated(true);
     }
   }, []);
-  // TODO: when update the user in the profil should re load the user data maybe create with a hoack?
+  //TODO: maybe hook
+  const onChange = (newUser: IUser) => {
+    setUser(newUser);
+  };
 
   return (
     <Router>
@@ -33,16 +35,24 @@ function App() {
         )}
         <div className={AppStyle.main}>
           <Routes>
-            {isAuthenticated && <Route path="/" element={<PostsPage />} />}
-            {!isAuthenticated && <Route path="/" element={<LoginPage />} />}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/SignUp" element={<SignUpPage />} />
-            <Route path="/profile" element={<UserProfile user={user} />} />
+            {" "}
+            {isAuthenticated ? (
+              <>
+                <Route path="/" element={<PostsPage />} />
+                <Route path="/profile" element={<UserProfile user={user} onChangeUser={onChange} />} />
+              </>
+            ) : (
+              <>
+                <Route path="/" element={<LoginPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/SignUp" element={<SignUpPage />} />
+              </>
+            )}
           </Routes>
         </div>
       </div>
     </Router>
   );
 }
-// TODO: when not login cant acsses posts and profile pages at all even via link
+
 export default App;

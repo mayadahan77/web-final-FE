@@ -11,7 +11,7 @@ const api = axios.create({
   baseURL: "http://localhost:3000",
 });
 
-const UserProfile: FC<{ user: IUser }> = ({ user }) => {
+const UserProfile: FC<{ user: IUser; onChangeUser: (user: IUser) => void }> = ({ user, onChangeUser }) => {
   const [editMode, setEditMode] = useState(false);
   const [userData, setUserData] = useState<IUser>(user);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +21,7 @@ const UserProfile: FC<{ user: IUser }> = ({ user }) => {
 
   // TODO : this error i loading and all the api calling is reptitve maybe extract to somwhere
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     console.log("file ", selectedFile);
 
@@ -33,13 +33,29 @@ const UserProfile: FC<{ user: IUser }> = ({ user }) => {
         alert("Invalid file type! Please select an image (JPEG, PNG, GIF, WebP).");
         return;
       }
-      //setUserData({ ...userData, ["imgUrl"]: selectedFile }); // TODO: how to convert the file to img to send to the BE
+      const formData = new FormData();
+      formData.append("file", selectedFile); // Attach the file
+      formData.append("userId", userData._id ?? ""); // Attach userId as a string
+
+      try {
+        const response = await axios.post("http://localhost:3000/file", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        console.log("File uploaded successfully:", response.data);
+        onChangeUser(response.data.user); // this is not updating the user profil pic in the side bar
+      } catch (error) {
+        console.error("Error uploading file:", error);
+      }
+
       setFile(selectedFile);
     }
   };
 
   useEffect(() => {
-    const user = localStorage.getItem("user");
+    const user = localStorage.getItem("user"); //TODO: maybe hook
     if (user) {
       const userObj: IUser = JSON.parse(user);
       setUserData(userObj);
@@ -70,6 +86,7 @@ const UserProfile: FC<{ user: IUser }> = ({ user }) => {
 
       setIsLoading(false);
       localStorage.setItem("user", JSON.stringify(response.data));
+      onChangeUser(response.data);
       return response.data;
     } catch (error: unknown) {
       setIsLoading(false);

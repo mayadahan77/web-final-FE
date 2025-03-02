@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 
 const schema = z.object({
   email: z.string().email("Invalid email").min(1, "Email is required"),
@@ -26,13 +27,33 @@ const LoginPage: FC = () => {
       const response = await api.post("/auth/login", data);
       localStorage.setItem("accessToken", response.data.accessToken);
       localStorage.setItem("refreshToken", response.data.refreshToken);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
 
-      //TODO: login only return the ID of the user should i return it as well or should we do onther call?
       window.location.href = "/";
     } catch (error) {
       console.error("Signup failed", error);
     }
   };
+
+  const googleResponseMessage = async (credentialResponse: CredentialResponse) => {
+    console.log("Google Error");
+    console.log(credentialResponse);
+    try {
+      const response = await api.post("/auth/googleSignin", { credential: credentialResponse });
+      localStorage.setItem("accessToken", response.data.accessToken);
+      localStorage.setItem("refreshToken", response.data.refreshToken);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Signup failed", error);
+    }
+  };
+
+  const googleErrorMessage = () => {
+    console.log("Google Error");
+  };
+
   //TODO: maybe esxtract the form part of the signup page ant the edit user to a diffret component beacuse it is the same baysicly
 
   return (
@@ -69,6 +90,7 @@ const LoginPage: FC = () => {
           <button type="submit" className={LoginPageStyle.Button}>
             login
           </button>
+          <GoogleLogin onSuccess={googleResponseMessage} onError={googleErrorMessage} />
         </form>
         <div onClick={() => navigate("/SignUp")} className={LoginPageStyle.herf}>
           SignUp
