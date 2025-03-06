@@ -80,7 +80,7 @@ const SinglePagePost: FC<{ user: IUser }> = ({ user }) => {
 
   return (
     <div className={PostsPageStyle.pageContainer}>
-      <Post post={post} withActions={false} />
+      <Post currentPost={post} withActions={false} />
       <div className={PostsPageStyle.pageTitle}>Comments:</div>
 
       {error && <p>{error}</p>}

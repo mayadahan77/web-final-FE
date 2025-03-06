@@ -70,7 +70,7 @@ const PostsPage: FC<{ user: IUser }> = ({ user }) => {
           </div>
           <div className={PostsPageStyle.postContainer}>
             {posts.map((post) => (
-              <Post post={post} withActions={true} />
+              <Post currentPost={post} withActions={true} user={user}/>
             ))}
           </div>
         </div>

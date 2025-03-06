@@ -228,6 +228,11 @@ h2 {
   transition: background 0.2s, color 0.2s;
 }
 
+.likedButton{
+  background-color: #327ccb;
+  color: white;
+}
+
 .actionButton:hover {
   background: #f0f2f5;
   color: #007bff;
