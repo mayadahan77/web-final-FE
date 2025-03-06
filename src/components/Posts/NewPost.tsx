@@ -1,13 +1,13 @@
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 import axios from "axios";
 import NewPostStyle from "./Posts.module.css";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const schema = z.object({
-  title: z.string().min(1, "title is required"),
+  title: z.string().min(1, "Title is required"),
   content: z.string().min(1, "Content is required"),
 });
 
@@ -18,10 +18,24 @@ const api = axios.create({
 });
 
 const NewPost: FC = () => {
-  const { register, handleSubmit, formState } = useForm<FormData>({
+  const { register, handleSubmit, formState, setValue } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
   const navigate = useNavigate();
+  const location = useLocation(); // To retrieve state passed from the post page
+  const [isEditing, setIsEditing] = useState(false);
+  const [postId, setPostId] = useState<string | null>(null);
+
+  // This useEffect will populate the form if we are in edit mode
+  useEffect(() => {
+    if (location.state?.postId) {
+      setIsEditing(true);
+      setPostId(location.state.postId);
+      // Pre-fill the form with the current post data
+      setValue("title", location.state.title);
+      setValue("content", location.state.content);
+    }
+  }, [location.state, setValue]);
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -31,17 +45,30 @@ const NewPost: FC = () => {
         return;
       }
 
-      const response = await api.post(`/posts`, data, {
-        headers: {
-          Authorization: `JWT ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      let response;
+      if (isEditing && postId) {
+        // If editing, update the existing post
+        response = await api.put(`/posts/${postId}`, data, {
+          headers: {
+            Authorization: `JWT ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+        console.log("Post updated: ", response.data);
+      } else {
+        // If not editing, create a new post
+        response = await api.post("/posts", data, {
+          headers: {
+            Authorization: `JWT ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+        console.log("Post created: ", response.data);
+      }
 
-      console.log("Response: ", response);
-      navigate("/"); // Navigate after successful submission
+      navigate("/"); // Redirect after successful creation/update
     } catch (error) {
-      console.error("Error creating post: ", error);
+      console.error("Error submitting post: ", error);
     }
   };
 
@@ -49,7 +76,7 @@ const NewPost: FC = () => {
     <div className={NewPostStyle.Container}>
       <div className={NewPostStyle.Box}>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <h2>New Post</h2>
+          <h2>{isEditing ? "Edit Post" : "New Post"}</h2>
 
           <div className={NewPostStyle.error}>
             {formState.errors.title && <div className="text-danger">{formState.errors.title.message}</div>}
@@ -70,16 +97,11 @@ const NewPost: FC = () => {
           </div>
           <div className={NewPostStyle.formGroup}>
             <label>Content:</label>
-            <input
-              id="content"
-              type="text"
-              placeholder="Content"
-              {...register("content")}
-              className={NewPostStyle.inputField}
-            />
+            <textarea id="content" placeholder="Content" {...register("content")} className={NewPostStyle.inputField} />
           </div>
+
           <button type="submit" className={NewPostStyle.Button}>
-            Create
+            {isEditing ? "Update Post" : "Create Post"}
           </button>
         </form>
       </div>

@@ -12,7 +12,6 @@ const Post: FC<{ currentPost: IPost; withActions: boolean; user: IUser }> = ({ c
   const navigate = useNavigate();
   const [post, setPost] = useState<IPost>(currentPost);
   const usersIdLikes = Array.isArray(post.usersIdLikes) ? post.usersIdLikes : [];
-
   const hasUserLike = usersIdLikes.includes(user._id);
   const [like, setLike] = useState<boolean>(hasUserLike);
 
@@ -45,7 +44,6 @@ const Post: FC<{ currentPost: IPost; withActions: boolean; user: IUser }> = ({ c
       setPost(response.data);
       // Toggle the like state based on the updated likes
       setLike(!hasUserLike);
-      console.log(usersIdLikes.length);
     } catch (error) {
       console.error("Error updating like: ", error);
     }
@@ -53,6 +51,40 @@ const Post: FC<{ currentPost: IPost; withActions: boolean; user: IUser }> = ({ c
 
   const navigatToSinglePost = () => {
     navigate(`/post/${post._id}`, { state: post });
+  };
+
+  const handleDeletePost = async () => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this post?");
+    if (confirmDelete) {
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          console.error("No access token found");
+          return;
+        }
+
+        await api.delete(`/posts/${post._id}`, {
+          headers: {
+            Authorization: `JWT ${token}`,
+          },
+        });
+
+        alert("Post deleted successfully!");
+        navigate("/"); // Navigate to the home page or wherever appropriate after deletion
+      } catch (error) {
+        console.error("Error deleting post: ", error);
+      }
+    }
+  };
+
+  const handleEdit = (post: IPost) => {
+    navigate("/new-post", {
+      state: {
+        postId: post._id,
+        title: post.title,
+        content: post.content,
+      },
+    });
   };
 
   return (
@@ -83,6 +115,16 @@ const Post: FC<{ currentPost: IPost; withActions: boolean; user: IUser }> = ({ c
           <button className={styles.actionButton} onClick={navigatToSinglePost}>
             💬 Comment ({post.commentsCount})
           </button>
+          {post.senderId === user._id && (
+            <>
+              <button className={styles.actionButton} onClick={() => handleEdit(post)}>
+                ✏️ Edit
+              </button>
+              <button className={styles.actionButton} onClick={handleDeletePost}>
+                🗑️ Delete
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>

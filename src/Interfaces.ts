@@ -41,9 +41,11 @@ export const INTINAL_DATA_USER: IUser = {
 };
 
 export const INTINAL_DATA_POST: IPost = {
+  _id: "",
   title: "",
   content: "",
   senderId: "",
+  usersIdLikes: [],
 };
 
 export const INTINAL_DATA_COMMENT: IComments = {

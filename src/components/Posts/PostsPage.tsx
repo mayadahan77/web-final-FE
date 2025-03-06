@@ -2,7 +2,7 @@ import { FC, useEffect, useState } from "react";
 import axios from "axios";
 import Loader from "../Loader";
 import PostsPageStyle from "./Posts.module.css";
-import { INTINAL_DATA_POST, IPost, IUser } from "../../Interfaces";
+import { IPost, IUser } from "../../Interfaces";
 import Post from "./Post";
 import { useNavigate } from "react-router-dom";
 
@@ -11,7 +11,7 @@ const apiClient = axios.create({
 });
 
 const PostsPage: FC<{ user: IUser }> = ({ user }) => {
-  const [posts, setPosts] = useState<[IPost]>([INTINAL_DATA_POST]);
+  const [posts, setPosts] = useState<IPost[]>([]);
   const [myPosts, setMyPosts] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -23,9 +23,13 @@ const PostsPage: FC<{ user: IUser }> = ({ user }) => {
 
   const fetchPosts = async (justCurrentUser: boolean) => {
     try {
+      setIsLoading(true);
+      setError(null);
+
       const token = localStorage.getItem("accessToken");
       if (!token) {
         console.error("No access token found");
+        setIsLoading(false);
         return;
       }
 
@@ -35,27 +39,25 @@ const PostsPage: FC<{ user: IUser }> = ({ user }) => {
           Authorization: `JWT ${token}`,
         },
       });
-      return response.data;
+
+      setPosts(response.data || []); // ✅ Ensure posts are always an array
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("An unknown error occurred");
-      }
-      setIsLoading(false);
+      console.error("Error fetching posts:", error);
+      setError(error instanceof Error ? error.message : "An unknown error occurred");
+    } finally {
+      setIsLoading(false); // ✅ Always stop loading after fetch
     }
   };
 
   useEffect(() => {
-    fetchPosts(myPosts).then((data) => {
-      console.log("posts", data);
-      if (data) setPosts(data);
-    });
-  }, [myPosts]);
+    if (user._id) {
+      fetchPosts(myPosts);
+    }
+  }, [myPosts, user._id]);
 
   return (
     <div>
-      {error && <p>{error}</p>}
+      {error && <p className={PostsPageStyle.error}>{error}</p>}
       {isLoading ? (
         <Loader />
       ) : (
@@ -69,9 +71,11 @@ const PostsPage: FC<{ user: IUser }> = ({ user }) => {
             </div>
           </div>
           <div className={PostsPageStyle.postContainer}>
-            {posts.map((post) => (
-              <Post currentPost={post} withActions={true} user={user}/>
-            ))}
+            {posts.length > 0 ? (
+              posts.map((post) => <Post key={post._id} currentPost={post} withActions={true} user={user} />)
+            ) : (
+              <p>No posts found.</p>
+            )}
           </div>
         </div>
       )}
