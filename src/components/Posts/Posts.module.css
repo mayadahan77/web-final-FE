@@ -8,11 +8,30 @@
 
 .postContainer {
   display: flex;
+  flex-direction: column;
   align-items: center;
   background-color: #fff;
   padding: 20px;
   min-width: 80%;
   gap: 10px;
+}
+
+.PageHeader{
+  display: flex;
+  justify-content: space-between;
+  min-width: 60%;
+}
+
+.pageTitle{
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.buttonContainer{
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .post{
@@ -25,3 +44,294 @@
   border: 2px solid black;
   gap: 10px;
 }
+
+
+.Container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 60px;
+}
+
+.Box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  width: 500px;
+}
+
+h2 {
+  margin-bottom: 20px;
+}
+
+.inputField {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.Button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.Button:hover {
+  background-color: #0056b3;
+}
+
+.herf{
+  color: #007bff;
+  margin-top: 25px;
+  text-decoration: underline;
+}
+.herf:hover {
+  color: #0056b3;
+}
+
+.formGroup {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 2px;
+  width: 100%;
+  z-index: 2;
+}
+
+.formGroup label {
+  width: 100px;
+  font-weight: bold;
+}
+
+.formGroup input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+
+.error{
+  justify-content: end;
+    display: flex;
+    position: fixed;
+    margin-left: 105px;
+    padding-top: 50px;
+    z-index: 0;
+}
+
+/* Post Container */
+.post {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  max-width: 500px;
+  width: 100%;
+  margin: 10px auto;
+  border: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* User Info (Profile & Name) */
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  background-color: #ccc;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #555;
+}
+
+.userDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.sender {
+  font-weight: 600;
+  color: #333;
+}
+
+.timestamp {
+  font-size: 12px;
+  color: #777;
+}
+
+/* Post Title */
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #222;
+  margin-bottom: 6px;
+}
+
+/* Post Content */
+.content {
+  font-size: 16px;
+  color: #444;
+  margin-bottom: 12px;
+}
+
+/* Post Image */
+.image {
+  width: 100%;
+  height: auto;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+/* Action Buttons */
+.actions {
+  display: flex;
+  gap: 40%;
+  justify-content: center;
+  font-size: 14px;
+  color: #666;
+  padding-top: 8px;
+  border-top: 1px solid #ddd;
+}
+
+.actionButton {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.actionButton:hover {
+  background: #f0f2f5;
+  color: #007bff;
+}
+.commentsContainer{
+  display: flex;
+  justify-content: space-between;
+  width: 80%;
+  margin-top: 20px;
+  align-items: start;
+}
+/* Comment input container */
+.commentInput {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+  min-width: 48%
+}
+
+.commentInput textarea {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  resize: none;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.commentInput button {
+  padding: 8px 16px;
+  border-radius: 5px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.commentInput button:hover {
+  background-color: #0056b3;
+}
+
+/* Comment section styling */
+.comment {
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  background-color: #fff;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  margin-bottom: 10px;
+}
+
+.commentSection{
+  width: 48%;
+  display: flex;
+  flex-direction: column;
+}
+
+.commentContent {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.commentUser {
+  display: flex;
+  align-items: start;
+}
+
+.commentUserAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+.commentUser span {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* Loader styling */
+.loader {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.loader div {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #007bff;
+  animation: spin 1.2s infinite linear;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+

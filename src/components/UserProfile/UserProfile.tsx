@@ -162,10 +162,9 @@ const UserProfile: FC<{ user: IUser; onChangeUser: (user: IUser) => void }> = ({
         </div>
         <div className={UserProfileStyle.imageContainer}>
           <div style={{ display: "flex", justifyContent: "center", position: "relative" }}>
-            {/* Show selected image preview */}
+            {/* TODO: when getting a imag url on the user we need to use it */}
             <img src={file ? URL.createObjectURL(file) : Avatar} alt="User" className={UserProfileStyle.profilePic} />
 
-            {/* Hidden file input */}
             <input
               className={UserProfileStyle.uploadPicInput}
               type="file"
@@ -174,7 +173,6 @@ const UserProfile: FC<{ user: IUser; onChangeUser: (user: IUser) => void }> = ({
               onChange={handleFileChange}
             />
 
-            {/* Clickable icon to trigger file selection */}
             <FontAwesomeIcon
               className={UserProfileStyle.uploadPicIcon}
               onClick={() => fileInputRef.current?.click()}

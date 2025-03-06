@@ -7,6 +7,8 @@ import UserProfile from "../UserProfile/UserProfile";
 import SignUpPage from "../RegistrationPage/SignUpPage";
 import { useEffect, useState } from "react";
 import { INTINAL_DATA_USER, IUser } from "../../Interfaces";
+import NewPost from "../Posts/NewPost";
+import SinglePagePost from "../Posts/singlePagePost";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -38,8 +40,10 @@ function App() {
             {" "}
             {isAuthenticated ? (
               <>
-                <Route path="/" element={<PostsPage />} />
+                <Route path="/" element={<PostsPage user={user} />} />
                 <Route path="/profile" element={<UserProfile user={user} onChangeUser={onChange} />} />
+                <Route path="/new-post" element={<NewPost />} />
+                <Route path="/post/:postId" element={<SinglePagePost user={user} />} />
               </>
             ) : (
               <>
