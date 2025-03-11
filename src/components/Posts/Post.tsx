@@ -8,7 +8,12 @@ const api = axios.create({
   baseURL: "http://localhost:3000",
 });
 
-const Post: FC<{ currentPost: IPost; withActions: boolean; user: IUser }> = ({ currentPost, withActions, user }) => {
+const Post: FC<{ currentPost: IPost; withActions: boolean; user: IUser; onDelete?: (id: string) => void }> = ({
+  currentPost,
+  withActions,
+  user,
+  onDelete,
+}) => {
   const navigate = useNavigate();
   const [post, setPost] = useState<IPost>(currentPost);
   const usersIdLikes = Array.isArray(post.usersIdLikes) ? post.usersIdLikes : [];
@@ -54,26 +59,23 @@ const Post: FC<{ currentPost: IPost; withActions: boolean; user: IUser }> = ({ c
   };
 
   const handleDeletePost = async () => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this post?");
-    if (confirmDelete) {
-      try {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-          console.error("No access token found");
-          return;
-        }
-
-        await api.delete(`/posts/${post._id}`, {
-          headers: {
-            Authorization: `JWT ${token}`,
-          },
-        });
-
-        alert("Post deleted successfully!");
-        navigate("/"); // Navigate to the home page or wherever appropriate after deletion
-      } catch (error) {
-        console.error("Error deleting post: ", error);
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        console.error("No access token found");
+        return;
       }
+
+      await api.delete(`/posts/${post._id}`, {
+        headers: {
+          Authorization: `JWT ${token}`,
+        },
+      });
+
+      if (onDelete) onDelete(post._id);
+      navigate("/");
+    } catch (error) {
+      console.error("Error deleting post: ", error);
     }
   };
 
@@ -83,6 +85,7 @@ const Post: FC<{ currentPost: IPost; withActions: boolean; user: IUser }> = ({ c
         postId: post._id,
         title: post.title,
         content: post.content,
+        imgUrl: post.imgUrl,
       },
     });
   };
@@ -101,7 +104,6 @@ const Post: FC<{ currentPost: IPost; withActions: boolean; user: IUser }> = ({ c
           <span className={styles.sender}>{post.senderName}</span>
         </div>
       </div>
-
       <h2 className={styles.title}>{post.title}</h2>
       <p className={styles.content}>{post.content}</p>
 

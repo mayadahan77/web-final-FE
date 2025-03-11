@@ -161,7 +161,6 @@ h2 {
 .avatar {
   width: 40px;
   height: 40px;
-  background-color: #ccc;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -200,25 +199,40 @@ h2 {
   margin-bottom: 12px;
 }
 
-/* Post Image */
 .image {
-  width: 100%;
-  height: auto;
   max-height: 300px;
-  object-fit: cover;
+  max-width: 100%; /* Ensures the width adjusts accordingly */
+  object-fit: contain; /* Ensures the image scales to fit within the container without distortion */
   border-radius: 8px;
   margin-bottom: 10px;
 }
 
+
 /* Action Buttons */
 .actions {
   display: flex;
-  gap: 20%;
+  gap: 10%;
   justify-content: center;
   font-size: 14px;
   color: #666;
   padding-top: 8px;
   border-top: 1px solid #ddd;
+}
+
+.uploadPicInput{
+  display: none;
+}
+
+.uploadPicIcon{
+  left: 0px; 
+  cursor: pointer;
+  font-size: 22px;
+}
+
+.handlePicContainer{
+  display: flex;
+  flex-direction: column;
+  margin-right: 15px;
 }
 
 .actionButton {

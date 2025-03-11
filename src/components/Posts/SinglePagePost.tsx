@@ -89,23 +89,20 @@ const SinglePagePost: FC<{ user: IUser }> = ({ user }) => {
   };
 
   const handleDeleteComment = async (commentId: string) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this comment?");
-    if (confirmDelete) {
-      try {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-          console.error("No access token found");
-          return;
-        }
-
-        await apiClient.delete(`/comments/${commentId}`, {
-          headers: { Authorization: `JWT ${token}` },
-        });
-
-        setComments(comments.filter((comment) => comment._id !== commentId));
-      } catch (error: unknown) {
-        console.error("Error deleting comment:", error);
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        console.error("No access token found");
+        return;
       }
+
+      await apiClient.delete(`/comments/${commentId}`, {
+        headers: { Authorization: `JWT ${token}` },
+      });
+
+      setComments(comments.filter((comment) => comment._id !== commentId));
+    } catch (error: unknown) {
+      console.error("Error deleting comment:", error);
     }
   };
 

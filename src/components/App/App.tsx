@@ -25,6 +25,7 @@ function App() {
   //TODO: maybe hook
   const onChange = (newUser: IUser) => {
     setUser(newUser);
+    localStorage.setItem("user", JSON.stringify(newUser));
   };
 
   return (
@@ -37,10 +38,9 @@ function App() {
         )}
         <div className={AppStyle.main}>
           <Routes>
-            {" "}
             {isAuthenticated ? (
               <>
-                <Route path="/" element={<PostsPage user={user} />} />
+                <Route path="/" element={<PostsPage user={user} userPosts={false} />} />
                 <Route path="/profile" element={<UserProfile user={user} onChangeUser={onChange} />} />
                 <Route path="/new-post" element={<NewPost />} />
                 <Route path="/post/:postId" element={<SinglePagePost user={user} />} />

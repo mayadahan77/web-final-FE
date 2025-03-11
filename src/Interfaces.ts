@@ -12,6 +12,7 @@ export interface IPost {
 
 export interface IComments {
   _id: string;
+  isEditing: boolean;
   postId: string;
   content: string;
   senderId: string;
@@ -52,6 +53,7 @@ export const INTINAL_DATA_COMMENT: IComments = {
   _id: "",
   postId: "",
   content: "",
+  isEditing: false,
   senderId: "",
   imgUrl: "",
 };

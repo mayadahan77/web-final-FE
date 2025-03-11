@@ -10,9 +10,9 @@ const apiClient = axios.create({
   baseURL: "http://localhost:3000",
 });
 
-const PostsPage: FC<{ user: IUser }> = ({ user }) => {
+const PostsPage: FC<{ user: IUser; userPosts: boolean }> = ({ user, userPosts }) => {
   const [posts, setPosts] = useState<IPost[]>([]);
-  const [myPosts, setMyPosts] = useState<boolean>(false);
+  const [myPosts, setMyPosts] = useState<boolean>(userPosts);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
@@ -40,13 +40,17 @@ const PostsPage: FC<{ user: IUser }> = ({ user }) => {
         },
       });
 
-      setPosts(response.data || []); // ✅ Ensure posts are always an array
+      setPosts(response.data || []);
     } catch (error: unknown) {
       console.error("Error fetching posts:", error);
       setError(error instanceof Error ? error.message : "An unknown error occurred");
     } finally {
-      setIsLoading(false); // ✅ Always stop loading after fetch
+      setIsLoading(false);
     }
+  };
+
+  const handlePostDelete = (postId: string) => {
+    setPosts((prevPosts) => prevPosts.filter((post) => post._id !== postId));
   };
 
   useEffect(() => {
@@ -64,15 +68,19 @@ const PostsPage: FC<{ user: IUser }> = ({ user }) => {
         <div className={PostsPageStyle.pageContainer}>
           <div className={PostsPageStyle.PageHeader}>
             <div className={PostsPageStyle.pageTitle}>{myPosts ? "My Posts" : "All The Posts"}</div>
-            <div className={PostsPageStyle.buttonContainer}>
-              <button onClick={() => setMyPosts(false)}>All Posts</button>
-              <button onClick={() => setMyPosts(true)}>My Posts</button>
-              <button onClick={addPost}>Add Post</button>
-            </div>
+            {!userPosts && (
+              <div className={PostsPageStyle.buttonContainer}>
+                <button onClick={() => setMyPosts(false)}>All Posts</button>
+                <button onClick={() => setMyPosts(true)}>My Posts</button>
+                <button onClick={addPost}>Add Post</button>
+              </div>
+            )}
           </div>
           <div className={PostsPageStyle.postContainer}>
             {posts.length > 0 ? (
-              posts.map((post) => <Post key={post._id} currentPost={post} withActions={true} user={user} />)
+              posts.map((post) => (
+                <Post key={post._id} currentPost={post} withActions={true} user={user} onDelete={handlePostDelete} />
+              ))
             ) : (
               <p>No posts found.</p>
             )}

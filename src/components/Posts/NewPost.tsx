@@ -1,10 +1,12 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState, useRef } from "react";
 import axios from "axios";
 import NewPostStyle from "./Posts.module.css";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useLocation } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faImage } from "@fortawesome/free-solid-svg-icons";
 
 const schema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -21,21 +23,34 @@ const NewPost: FC = () => {
   const { register, handleSubmit, formState, setValue } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
+
   const navigate = useNavigate();
-  const location = useLocation(); // To retrieve state passed from the post page
+  const location = useLocation();
   const [isEditing, setIsEditing] = useState(false);
   const [postId, setPostId] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // This useEffect will populate the form if we are in edit mode
   useEffect(() => {
     if (location.state?.postId) {
       setIsEditing(true);
       setPostId(location.state.postId);
-      // Pre-fill the form with the current post data
       setValue("title", location.state.title);
       setValue("content", location.state.content);
+      if (location.state.imgUrl) {
+        setPreviewImage(location.state.imgUrl);
+      }
     }
   }, [location.state, setValue]);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      setPreviewImage(URL.createObjectURL(file));
+    }
+  };
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -45,28 +60,33 @@ const NewPost: FC = () => {
         return;
       }
 
+      const formData = new FormData();
+      formData.append("title", data.title);
+      formData.append("content", data.content);
+      if (selectedImage) {
+        formData.append("image", selectedImage);
+      }
+
       let response;
       if (isEditing && postId) {
-        // If editing, update the existing post
-        response = await api.put(`/posts/${postId}`, data, {
+        response = await api.put(`/posts/${postId}`, formData, {
           headers: {
             Authorization: `JWT ${token}`,
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
           },
         });
         console.log("Post updated: ", response.data);
       } else {
-        // If not editing, create a new post
-        response = await api.post("/posts", data, {
+        response = await api.post("/posts", formData, {
           headers: {
             Authorization: `JWT ${token}`,
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
           },
         });
         console.log("Post created: ", response.data);
       }
 
-      navigate("/"); // Redirect after successful creation/update
+      navigate("/");
     } catch (error) {
       console.error("Error submitting post: ", error);
     }
@@ -98,6 +118,25 @@ const NewPost: FC = () => {
           <div className={NewPostStyle.formGroup}>
             <label>Content:</label>
             <textarea id="content" placeholder="Content" {...register("content")} className={NewPostStyle.inputField} />
+          </div>
+
+          <div className={NewPostStyle.formGroup}>
+            <label>Upload Image:</label>
+            <input
+              className={NewPostStyle.uploadPicInput}
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              onChange={handleFileChange}
+            />
+            <div className={NewPostStyle.handlePicContainer}>
+              <FontAwesomeIcon
+                className={NewPostStyle.uploadPicIcon}
+                onClick={() => fileInputRef.current?.click()}
+                icon={faImage}
+              />
+            </div>
+            {previewImage && <img src={previewImage} alt="Preview" className={NewPostStyle.image} />}
           </div>
 
           <button type="submit" className={NewPostStyle.Button}>

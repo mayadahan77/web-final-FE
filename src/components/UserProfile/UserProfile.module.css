@@ -32,16 +32,16 @@
 }
 
 .uploadPicInput{
-    display: none;
+  display: none;
 }
 
 .uploadPicIcon{
-    position: absolute; 
-    bottom: 0px; 
-    right: 0px; 
-    cursor: pointer;
-    font-size: 22px;
-  }
+  position: absolute; 
+  bottom: 0px; 
+  right: 0px; 
+  cursor: pointer;
+  font-size: 22px;
+}
 
 
 .userInfo {
