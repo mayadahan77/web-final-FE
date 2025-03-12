@@ -31,6 +31,16 @@ export interface IUser {
   imgUrl?: string;
 }
 
+export interface IAuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: IUser;
+}
+
+export interface LastPostElementRefProps {
+  node: Element | null;
+}
+
 export const INTINAL_DATA_USER: IUser = {
   _id: "",
   email: "",

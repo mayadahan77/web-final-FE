@@ -1,21 +1,25 @@
 import { FC } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import SidenavStyle from "./Sidenav.module.css";
 import Logo from "../../assets/share.png";
-import { IUser } from "../../Interfaces";
+import useUser from "../../hooks/useUser";
 
-const handleLogout = () => {
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("user");
+const Sidenav: FC = () => {
+  const { user, setUser } = useUser();
+  const navigate = useNavigate();
 
-  window.location.href = "/login";
-};
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("user");
+    setUser(undefined);
 
-const Sidenav: FC<{ user: IUser }> = ({ user }) => {
+    navigate("/login");
+    window.location.href = "/login";
+  };
   return (
     <div className={SidenavStyle.container}>
       <img src={Logo} className={SidenavStyle.logo} />
-      <div className={SidenavStyle.user}>Hello, {user.fullName}</div>
+      <div className={SidenavStyle.user}>Hello, {user?.fullName}</div>
       <nav className={SidenavStyle.nav}>
         <Link to="/profile">Profile</Link>
         <Link to="/">Posts</Link>

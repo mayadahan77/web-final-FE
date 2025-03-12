@@ -1,31 +1,30 @@
 import { FC, useEffect, useRef, useState } from "react";
 import UserProfileStyle from "./UserProfile.module.css";
 import Avatar from "../../assets/avatar.png";
-import { IUser } from "../../Interfaces";
+import { INTINAL_DATA_USER, IUser } from "../../Interfaces";
 import axios from "axios";
 import Loader from "../Loader";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faImage } from "@fortawesome/free-solid-svg-icons";
 import PostsPage from "../Posts/PostsPage";
+import useUser from "../../hooks/useUser";
 
-const api = axios.create({
-  baseURL: "http://localhost:3000",
-});
-
-const UserProfile: FC<{ user: IUser; onChangeUser: (user: IUser) => void }> = ({ user, onChangeUser }) => {
+const UserProfile: FC = () => {
+  const { user: fetchedUser, isLoading: userLoading, error: userError, updateUser } = useUser();
   const [editMode, setEditMode] = useState(false);
-  const [userData, setUserData] = useState<IUser>(user);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [userData, setUserData] = useState<IUser>(fetchedUser || INTINAL_DATA_USER);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // TODO : this error i loading and all the api calling is reptitve maybe extract to somwhere
+  useEffect(() => {
+    if (fetchedUser) {
+      setUserData(fetchedUser);
+    }
+  }, [fetchedUser]);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
 
     if (selectedFile) {
-      // Validate file type (only images allowed)
       const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 
       if (!validImageTypes.includes(selectedFile.type)) {
@@ -33,8 +32,8 @@ const UserProfile: FC<{ user: IUser; onChangeUser: (user: IUser) => void }> = ({
         return;
       }
       const formData = new FormData();
-      formData.append("file", selectedFile); // Attach the file
-      formData.append("userId", userData._id ?? ""); // Attach userId as a string
+      formData.append("file", selectedFile);
+      formData.append("userId", userData._id ?? "");
 
       try {
         const response = await axios.post("http://localhost:3000/file", formData, {
@@ -44,7 +43,6 @@ const UserProfile: FC<{ user: IUser; onChangeUser: (user: IUser) => void }> = ({
         });
 
         console.log("File uploaded successfully:", response.data);
-        onChangeUser(response.data.user);
         setUserData(response.data.user);
       } catch (error) {
         console.error("Error uploading file:", error);
@@ -52,69 +50,25 @@ const UserProfile: FC<{ user: IUser; onChangeUser: (user: IUser) => void }> = ({
     }
   };
 
-  useEffect(() => {
-    const user = localStorage.getItem("user"); //TODO: maybe hook
-    if (user) {
-      const userObj: IUser = JSON.parse(user);
-      console.log("user");
-      console.log(user);
-
-      setUserData(userObj);
-    }
-  }, []);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserData({ ...userData, [e.target.name]: e.target.value });
   };
 
-  const onSave = async (userData: IUser) => {
-    try {
-      setIsLoading(true);
-
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        console.error("No access token found");
-        setIsLoading(false);
-        return;
-      }
-
-      const response = await api.put(`/users/${userData._id}`, userData, {
-        headers: {
-          Authorization: `JWT ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      setIsLoading(false);
-      localStorage.setItem("user", JSON.stringify(response.data));
-      onChangeUser(response.data);
-      setUserData(response.data);
-      return response.data;
-    } catch (error: unknown) {
-      setIsLoading(false);
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("An unknown error occurred");
-      }
-
-      return null;
+  const handleSave = async () => {
+    const updatedUser = await updateUser(userData);
+    if (updatedUser) {
+      setUserData(updatedUser);
+      setEditMode(false);
     }
   };
 
-  const handleSave = () => {
-    onSave(userData);
-    setEditMode(false);
-  };
-  //TODO: add validtion to the edit i was able to remove the email and the user name not good!
-  // I dont understand how it is posible since there is some validtion in the BE
   return (
     <>
       <div className={UserProfileStyle.pageContainer}>
         <div className={UserProfileStyle.profileContainer}>
           <div>
-            {error && <p>{error}</p>}
-            {isLoading ? (
+            {userError && <p>{userError}</p>}
+            {userLoading ? (
               <Loader />
             ) : (
               <div className={UserProfileStyle.userInfo}>
@@ -173,7 +127,7 @@ const UserProfile: FC<{ user: IUser; onChangeUser: (user: IUser) => void }> = ({
           </div>
         </div>
       </div>
-      <PostsPage user={user} userPosts={true} />
+      <PostsPage userPosts={true} />
     </>
   );
 };

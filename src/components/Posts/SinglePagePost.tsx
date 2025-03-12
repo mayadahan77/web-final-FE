@@ -1,28 +1,35 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState, useRef, useCallback } from "react";
 import axios from "axios";
 import Loader from "../Loader";
 import PostsPageStyle from "./Posts.module.css";
-import { IComments, IPost, IUser } from "../../Interfaces";
+import { IComments, IPost, LastPostElementRefProps } from "../../Interfaces";
 import Post from "./Post";
 import { useLocation, useParams } from "react-router-dom";
+import useUser from "../../hooks/useUser";
+import avatar from "../../assets/avatar.png";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPenAlt, faTrashAlt } from "@fortawesome/free-solid-svg-icons";
 
 const apiClient = axios.create({
   baseURL: "http://localhost:3000",
 });
 
-const SinglePagePost: FC<{ user: IUser }> = ({ user }) => {
+const SinglePagePost: FC = () => {
+  const { user } = useUser();
   const location = useLocation();
   const { postId } = useParams();
   const [comments, setComments] = useState<IComments[]>([]);
   const [post, setPost] = useState<IPost | null>(location.state || null);
   const [newComment, setNewComment] = useState<string>("");
-
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(!location.state);
   const [isLoadingComments, setIsLoadingComments] = useState<boolean>(true);
   const [errorComments, setErrorComments] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(0);
+  const [totalComments, setTotalComments] = useState<number>(0);
+  const observer = useRef<IntersectionObserver | null>(null);
 
-  const fetchComments = async (postId: string) => {
+  const fetchComments = async (postId: string, page: number) => {
     setIsLoadingComments(true);
     try {
       const token = localStorage.getItem("accessToken");
@@ -31,11 +38,17 @@ const SinglePagePost: FC<{ user: IUser }> = ({ user }) => {
         return;
       }
 
-      const response = await apiClient.get(`/comments/post/${postId}`, {
+      const response = await apiClient.get(`/comments/post/${postId}?skip=${page * 10}&limit=10`, {
         headers: { Authorization: `JWT ${token}` },
       });
 
-      setComments(response.data);
+      const newComments = response.data.items;
+      setComments((prevComments) => {
+        const uniqueComments = new Map(prevComments.map((comment) => [comment._id, comment]));
+        newComments.forEach((comment: IComments) => uniqueComments.set(comment._id, comment));
+        return Array.from(uniqueComments.values());
+      });
+      setTotalComments(response.data.totalItems);
       setErrorComments(null);
     } catch (error: unknown) {
       setErrorComments(error instanceof Error ? error.message : "Failed to load comments");
@@ -60,7 +73,7 @@ const SinglePagePost: FC<{ user: IUser }> = ({ user }) => {
         { headers: { Authorization: `JWT ${token}` } }
       );
 
-      setComments([...comments, response.data]);
+      setComments((prevComments) => [...prevComments, response.data]);
       setNewComment("");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Failed to add comment");
@@ -80,7 +93,7 @@ const SinglePagePost: FC<{ user: IUser }> = ({ user }) => {
       });
 
       setPost(response.data);
-      fetchComments(response.data._id); // Fetch comments only after post loads
+      fetchComments(response.data._id, 0);
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Failed to load post");
     } finally {
@@ -100,17 +113,17 @@ const SinglePagePost: FC<{ user: IUser }> = ({ user }) => {
         headers: { Authorization: `JWT ${token}` },
       });
 
-      setComments(comments.filter((comment) => comment._id !== commentId));
+      setComments((prevComments) => prevComments.filter((comment) => comment._id !== commentId));
     } catch (error: unknown) {
       console.error("Error deleting comment:", error);
     }
   };
 
   const handleEditComment = (commentId: string, newContent: string) => {
-    // Update comment locally first
-    setComments(comments.map((comment) => (comment._id === commentId ? { ...comment, content: newContent } : comment)));
+    setComments((prevComments) =>
+      prevComments.map((comment) => (comment._id === commentId ? { ...comment, content: newContent } : comment))
+    );
 
-    // Then, update the comment on the server
     const token = localStorage.getItem("accessToken");
     if (!token) {
       console.error("No access token found");
@@ -124,14 +137,28 @@ const SinglePagePost: FC<{ user: IUser }> = ({ user }) => {
       });
   };
 
+  const lastCommentElementRef = useCallback(
+    (node: LastPostElementRefProps["node"]) => {
+      if (isLoadingComments) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && comments.length < totalComments) {
+          setCurrentPage((prevPage) => prevPage + 1);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [isLoadingComments, comments.length, totalComments]
+  );
+
   useEffect(() => {
     if (!post) {
       setIsLoading(true);
       fetchPost();
     } else {
-      fetchComments(post._id);
+      fetchComments(post._id, currentPage);
     }
-  }, [postId]);
+  }, [postId, currentPage]);
 
   return (
     <div className={PostsPageStyle.pageContainer}>
@@ -139,7 +166,7 @@ const SinglePagePost: FC<{ user: IUser }> = ({ user }) => {
         <Loader />
       ) : post ? (
         <>
-          <Post currentPost={post} withActions={false} user={user} />
+          <Post currentPost={post} withActions={false} />
           <div className={PostsPageStyle.pageTitle}>Comments:</div>
           {error && <p className={PostsPageStyle.error}>{error}</p>}
 
@@ -160,32 +187,37 @@ const SinglePagePost: FC<{ user: IUser }> = ({ user }) => {
               <p className={PostsPageStyle.error}>{errorComments}</p>
             ) : comments.length > 0 ? (
               <div className={PostsPageStyle.commentSection}>
-                {comments.map((comment) => (
-                  <div key={comment._id} className={PostsPageStyle.comment}>
+                {comments.map((comment, index) => (
+                  <div
+                    key={comment._id}
+                    className={PostsPageStyle.comment}
+                    ref={index === comments.length - 1 ? lastCommentElementRef : null}
+                  >
                     <div className={PostsPageStyle.commentUser}>
                       <img
-                        src={comment.senderProfile || "/default-avatar.jpg"}
+                        src={comment.senderProfile || avatar}
                         alt={comment.senderName}
                         className={PostsPageStyle.commentUserAvatar}
                       />
                       <span>{comment.senderName}</span>
                     </div>
 
-                    {/* Editable content */}
                     {comment.isEditing ? (
                       <div className={PostsPageStyle.commentEdit}>
                         <textarea
                           value={comment.content}
                           onChange={(e) =>
-                            setComments(
-                              comments.map((c) => (c._id === comment._id ? { ...c, content: e.target.value } : c))
+                            setComments((prevComments) =>
+                              prevComments.map((c) => (c._id === comment._id ? { ...c, content: e.target.value } : c))
                             )
                           }
                         />
                         <button
                           onClick={() => {
                             handleEditComment(comment._id, comment.content);
-                            setComments(comments.map((c) => (c._id === comment._id ? { ...c, isEditing: false } : c)));
+                            setComments((prevComments) =>
+                              prevComments.map((c) => (c._id === comment._id ? { ...c, isEditing: false } : c))
+                            );
                           }}
                         >
                           Save
@@ -195,18 +227,20 @@ const SinglePagePost: FC<{ user: IUser }> = ({ user }) => {
                       <div className={PostsPageStyle.commentContent}>{comment.content}</div>
                     )}
 
-                    {comment.senderId === user._id && !comment.isEditing && (
+                    {comment.senderId === user?._id && !comment.isEditing && (
                       <div className={PostsPageStyle.actions}>
                         <button
                           className={PostsPageStyle.actionButton}
                           onClick={() =>
-                            setComments(comments.map((c) => (c._id === comment._id ? { ...c, isEditing: true } : c)))
+                            setComments((prevComments) =>
+                              prevComments.map((c) => (c._id === comment._id ? { ...c, isEditing: true } : c))
+                            )
                           }
                         >
-                          ✏️ Edit
+                          <FontAwesomeIcon icon={faPenAlt} /> Edit
                         </button>
                         <button className={PostsPageStyle.actionButton} onClick={() => handleDeleteComment(comment._id)}>
-                          🗑️ Delete
+                          <FontAwesomeIcon icon={faTrashAlt} /> Delete
                         </button>
                       </div>
                     )}

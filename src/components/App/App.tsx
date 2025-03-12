@@ -6,44 +6,38 @@ import AppStyle from "./App.module.css";
 import UserProfile from "../UserProfile/UserProfile";
 import SignUpPage from "../RegistrationPage/SignUpPage";
 import { useEffect, useState } from "react";
-import { INTINAL_DATA_USER, IUser } from "../../Interfaces";
 import NewPost from "../Posts/NewPost";
-import SinglePagePost from "../Posts/singlePagePost";
+import SinglePagePost from "../Posts/SinglePagePost";
+import useUser from "../../hooks/useUser";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<IUser>(INTINAL_DATA_USER);
+  const { user } = useUser();
 
   useEffect(() => {
-    const user = localStorage.getItem("user");
     if (user) {
-      const userObj: IUser = JSON.parse(user);
-      setUser(userObj);
       setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
     }
-  }, []);
-  //TODO: maybe hook
-  const onChange = (newUser: IUser) => {
-    setUser(newUser);
-    localStorage.setItem("user", JSON.stringify(newUser));
-  };
+  }, [user]);
 
   return (
     <Router>
       <div className={AppStyle.container}>
         {isAuthenticated && (
           <div className={AppStyle.sidenav}>
-            <Sidenav user={user} />
+            <Sidenav />
           </div>
         )}
         <div className={AppStyle.main}>
           <Routes>
             {isAuthenticated ? (
               <>
-                <Route path="/" element={<PostsPage user={user} userPosts={false} />} />
-                <Route path="/profile" element={<UserProfile user={user} onChangeUser={onChange} />} />
+                <Route path="/" element={<PostsPage userPosts={false} />} />
+                <Route path="/profile" element={<UserProfile />} />
                 <Route path="/new-post" element={<NewPost />} />
-                <Route path="/post/:postId" element={<SinglePagePost user={user} />} />
+                <Route path="/post/:postId" element={<SinglePagePost />} />
               </>
             ) : (
               <>

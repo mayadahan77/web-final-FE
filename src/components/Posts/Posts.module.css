@@ -243,7 +243,11 @@ h2 {
   font-weight: 500;
   padding: 6px 12px;
   border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: background 0.2s, color 0.2s;
+  gap: 3px;
 }
 
 .likedButton{

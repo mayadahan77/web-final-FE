@@ -6,12 +6,12 @@ import { useForm } from "react-hook-form";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
+import useUser from "../../hooks/useUser";
 
 const schema = z.object({
   email: z.string().email("Invalid email").min(1, "Email is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
-
 type FormData = z.infer<typeof schema>;
 
 const api = axios.create({
@@ -21,6 +21,7 @@ const api = axios.create({
 const LoginPage: FC = () => {
   const { register, handleSubmit, formState } = useForm<FormData>({ resolver: zodResolver(schema) });
   const navigate = useNavigate();
+  const { setUser } = useUser();
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -28,33 +29,29 @@ const LoginPage: FC = () => {
       localStorage.setItem("accessToken", response.data.accessToken);
       localStorage.setItem("refreshToken", response.data.refreshToken);
       localStorage.setItem("user", JSON.stringify(response.data.user));
-
-      window.location.href = "/";
+      setUser(response.data.user);
+      navigate("/");
     } catch (error) {
-      console.error("Signup failed", error);
+      console.error("Login failed", error);
     }
   };
 
   const googleResponseMessage = async (credentialResponse: CredentialResponse) => {
-    console.log("Google Error");
-    console.log(credentialResponse);
     try {
       const response = await api.post("/auth/googleSignin", { credential: credentialResponse });
       localStorage.setItem("accessToken", response.data.accessToken);
       localStorage.setItem("refreshToken", response.data.refreshToken);
       localStorage.setItem("user", JSON.stringify(response.data.user));
-
-      window.location.href = "/";
+      setUser(response.data.user);
+      navigate("/");
     } catch (error) {
-      console.error("Signup failed", error);
+      console.error("Google login failed", error);
     }
   };
 
   const googleErrorMessage = () => {
     console.log("Google Error");
   };
-
-  //TODO: maybe esxtract the form part of the signup page ant the edit user to a diffret component beacuse it is the same baysicly
 
   return (
     <div className={LoginPageStyle.Container}>
