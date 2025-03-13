@@ -6,7 +6,9 @@ import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faImage } from "@fortawesome/free-solid-svg-icons";
+import { faImage, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const schema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -49,6 +51,36 @@ const NewPost: FC = () => {
     if (file) {
       setSelectedImage(file);
       setPreviewImage(URL.createObjectURL(file));
+      event.target.value = "";
+    }
+  };
+
+  const handleDeleteImage = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        console.error("No access token found");
+        return;
+      }
+
+      const response = await api.put(
+        `/posts/removeImage/${postId}`,
+        {},
+        {
+          headers: {
+            Authorization: `JWT ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Image deleted: ", response.data);
+      setSelectedImage(null);
+      setPreviewImage(null);
+      toast.success("Image deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting image: ", error);
+      toast.error("Failed to delete image.");
     }
   };
 
@@ -94,6 +126,7 @@ const NewPost: FC = () => {
 
   return (
     <div className={NewPostStyle.Container}>
+      <ToastContainer />
       <div className={NewPostStyle.Box}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <h2>{isEditing ? "Edit Post" : "New Post"}</h2>
@@ -135,6 +168,7 @@ const NewPost: FC = () => {
                 onClick={() => fileInputRef.current?.click()}
                 icon={faImage}
               />
+              <FontAwesomeIcon icon={faTrash} className={NewPostStyle.uploadPicIcon} onClick={handleDeleteImage} />
             </div>
             {previewImage && <img src={previewImage} alt="Preview" className={NewPostStyle.image} />}
           </div>
