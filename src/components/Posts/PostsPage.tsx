@@ -49,11 +49,15 @@ const PostsPage: FC<{ userPosts: boolean }> = ({ userPosts }) => {
       });
 
       const newPosts = response.data.items;
-      setPosts((prevPosts) => {
-        const uniquePosts = new Map(prevPosts.map((post) => [post._id, post]));
-        newPosts.forEach((post: IPost) => uniquePosts.set(post._id, post));
-        return Array.from(uniquePosts.values());
-      });
+      if (page === 0) {
+        setPosts(newPosts);
+      } else {
+        setPosts((prevPosts) => {
+          const uniquePosts = new Map(prevPosts.map((post) => [post._id, post]));
+          newPosts.forEach((post: IPost) => uniquePosts.set(post._id, post));
+          return Array.from(uniquePosts.values());
+        });
+      }
       setTotalPosts(response.data.totalItems);
     } catch (error: unknown) {
       console.error("Error fetching posts:", error);
@@ -68,7 +72,7 @@ const PostsPage: FC<{ userPosts: boolean }> = ({ userPosts }) => {
     setPosts((prevPosts) => prevPosts.filter((post) => post._id !== postId));
   };
 
-  const lastPostElementRef = useCallback( 
+  const lastPostElementRef = useCallback(
     (node: LastPostElementRefProps["node"]) => {
       if (isLoadingMore) return;
       if (observer.current) observer.current.disconnect();
@@ -97,7 +101,7 @@ const PostsPage: FC<{ userPosts: boolean }> = ({ userPosts }) => {
       ) : (
         <div className={PostsPageStyle.pageContainer}>
           <div className={PostsPageStyle.PageHeader}>
-            <div className={PostsPageStyle.pageTitle}>{myPosts ? "My Posts" : "All The Posts"}</div>
+            <div className={PostsPageStyle.pageTitle}>{myPosts ? "My Posts" : "All Posts"}</div>
             {!userPosts && (
               <div className={PostsPageStyle.buttonContainer}>
                 <button onClick={() => setMyPosts(false)}>All Posts</button>

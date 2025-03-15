@@ -87,7 +87,9 @@ const LoginPage: FC = () => {
           <button type="submit" className={LoginPageStyle.Button}>
             login
           </button>
-          <GoogleLogin onSuccess={googleResponseMessage} onError={googleErrorMessage} />
+          <div className={LoginPageStyle.Google}>
+            <GoogleLogin onSuccess={googleResponseMessage} onError={googleErrorMessage} />
+          </div>
         </form>
         <div onClick={() => navigate("/SignUp")} className={LoginPageStyle.herf}>
           SignUp
