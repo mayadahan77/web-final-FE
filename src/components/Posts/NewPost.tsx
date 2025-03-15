@@ -1,5 +1,4 @@
 import { FC, useEffect, useState, useRef } from "react";
-import axios from "axios";
 import NewPostStyle from "./Posts.module.css";
 import { useForm } from "react-hook-form";
 import z from "zod";
@@ -9,6 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faImage, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import usePost from "../../hooks/usePost";
 
 const schema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -17,10 +17,6 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const api = axios.create({
-  baseURL: "http://localhost:3000",
-});
-
 const NewPost: FC = () => {
   const { register, handleSubmit, formState, setValue } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -28,6 +24,7 @@ const NewPost: FC = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const { createPost, updatePost, removeImage, isLoading } = usePost();
   const [isEditing, setIsEditing] = useState(false);
   const [postId, setPostId] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -56,72 +53,31 @@ const NewPost: FC = () => {
   };
 
   const handleDeleteImage = async () => {
-    try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        console.error("No access token found");
-        return;
-      }
-
-      const response = await api.put(
-        `/posts/removeImage/${postId}`,
-        {},
-        {
-          headers: {
-            Authorization: `JWT ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log("Image deleted: ", response.data);
+    if (postId) {
+      await removeImage(postId);
       setSelectedImage(null);
       setPreviewImage(null);
       toast.success("Image deleted successfully!");
-    } catch (error) {
-      console.error("Error deleting image: ", error);
-      toast.error("Failed to delete image.");
     }
   };
 
   const onSubmit = async (data: FormData) => {
-    try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        console.error("No access token found");
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append("title", data.title);
-      formData.append("content", data.content);
-      if (selectedImage) {
-        formData.append("image", selectedImage);
-      }
-
-      let response;
-      if (isEditing && postId) {
-        response = await api.put(`/posts/${postId}`, formData, {
-          headers: {
-            Authorization: `JWT ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        });
-        console.log("Post updated: ", response.data);
-      } else {
-        response = await api.post("/posts", formData, {
-          headers: {
-            Authorization: `JWT ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        });
-        console.log("Post created: ", response.data);
-      }
-
-      navigate("/");
-    } catch (error) {
-      console.error("Error submitting post: ", error);
+    const formData = new FormData();
+    formData.append("title", data.title);
+    formData.append("content", data.content);
+    if (selectedImage) {
+      formData.append("image", selectedImage);
     }
+
+    if (isEditing && postId) {
+      await updatePost(postId, formData);
+      toast.success("Post updated successfully!");
+    } else {
+      await createPost(formData);
+      toast.success("Post created successfully!");
+    }
+
+    navigate("/");
   };
 
   return (
@@ -145,7 +101,7 @@ const NewPost: FC = () => {
             />
           </div>
 
-          <div className={NewPostStyle.error}>
+          <div className={NewPostStyle.errorContent}>
             {formState.errors.content && <div className="text-danger">{formState.errors.content.message}</div>}
           </div>
           <div className={NewPostStyle.formGroup}>
@@ -173,7 +129,7 @@ const NewPost: FC = () => {
             {previewImage && <img src={previewImage} alt="Preview" className={NewPostStyle.image} />}
           </div>
 
-          <button type="submit" className={NewPostStyle.Button}>
+          <button type="submit" className={NewPostStyle.Button} disabled={isLoading}>
             {isEditing ? "Update Post" : "Create Post"}
           </button>
         </form>

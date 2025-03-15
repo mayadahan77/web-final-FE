@@ -2,20 +2,17 @@ import { forwardRef, useState } from "react";
 import { IPost } from "../../Interfaces";
 import styles from "./Posts.module.css";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import usePost from "../../hooks/usePost";
 import useUser from "../../hooks/useUser";
 import avatar from "../../assets/avatar.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComments, faPenAlt, faThumbsUp, faTrashAlt } from "@fortawesome/free-solid-svg-icons";
 
-const api = axios.create({
-  baseURL: "http://localhost:3000",
-});
-
 const Post = forwardRef<HTMLDivElement, { currentPost: IPost; withActions: boolean; onDelete?: (id: string) => void }>(
   ({ currentPost, withActions, onDelete }, ref) => {
     const navigate = useNavigate();
     const { user } = useUser();
+    const { updatePost } = usePost();
 
     const [post, setPost] = useState<IPost>(currentPost);
     const usersIdLikes = Array.isArray(post.usersIdLikes) ? post.usersIdLikes : [];
@@ -24,28 +21,15 @@ const Post = forwardRef<HTMLDivElement, { currentPost: IPost; withActions: boole
 
     const handleLike = async () => {
       try {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-          console.error("No access token found");
-          return;
-        }
-
         const updatedLikes = hasUserLike
           ? post.usersIdLikes.filter((id) => id !== user?._id)
           : [...post.usersIdLikes, user?._id];
 
-        const response = await api.put(
-          `/posts/${post._id}`,
-          { usersIdLikes: updatedLikes },
-          {
-            headers: {
-              Authorization: `JWT ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        setPost(response.data);
+        await updatePost(post._id, { usersIdLikes: updatedLikes });
+        setPost((prevPost) => ({
+          ...prevPost,
+          usersIdLikes: updatedLikes,
+        }));
         setLike(!hasUserLike);
       } catch (error) {
         console.error("Error updating like: ", error);
@@ -57,24 +41,8 @@ const Post = forwardRef<HTMLDivElement, { currentPost: IPost; withActions: boole
     };
 
     const handleDeletePost = async () => {
-      try {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-          console.error("No access token found");
-          return;
-        }
-
-        await api.delete(`/posts/${post._id}`, {
-          headers: {
-            Authorization: `JWT ${token}`,
-          },
-        });
-
-        if (onDelete) onDelete(post._id);
-        navigate("/");
-      } catch (error) {
-        console.error("Error deleting post: ", error);
-      }
+      if (onDelete) onDelete(post._id);
+      navigate("/");
     };
 
     const handleEdit = (post: IPost) => {

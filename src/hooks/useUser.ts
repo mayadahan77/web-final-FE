@@ -45,13 +45,6 @@ api.interceptors.response.use(
 );
 
 const userService = {
-  login: (data: FormData) => {
-    const controller = new AbortController();
-    const request = api.post<IUser>("/auth/login", data, {
-      signal: controller.signal,
-    });
-    return { request, abort: () => controller.abort() };
-  },
   updateUser: (userData: IUser) => {
     return api.put<IUser>(`/users/${userData._id}`, userData);
   },
@@ -104,6 +97,7 @@ const useUser = (data?: IUser) => {
   const updateUser = async (userData: IUser) => {
     try {
       setIsLoading(true);
+      setError(null);
       const response = await userService.updateUser(userData);
       setUser(response.data);
       localStorage.setItem("user", JSON.stringify(response.data));
@@ -111,7 +105,11 @@ const useUser = (data?: IUser) => {
       return response.data;
     } catch (error) {
       if (error instanceof Error) {
-        setError(error.message);
+        if (error.response.data.codeName == "DuplicateKey") {
+          setError("User Name already in use");
+        } else {
+          setError(error.message);
+        }
       } else {
         setError(String(error));
       }
