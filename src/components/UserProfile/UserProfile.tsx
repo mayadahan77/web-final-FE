@@ -1,32 +1,52 @@
 import { FC, useEffect, useRef, useState } from "react";
 import UserProfileStyle from "./UserProfile.module.css";
 import Avatar from "../../assets/avatar.png";
-import { IUser } from "../../Interfaces";
+import { INTINAL_DATA_USER, IUser } from "../../Interfaces";
 import axios from "axios";
 import Loader from "../Loader";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faImage } from "@fortawesome/free-solid-svg-icons";
+import PostsPage from "../Posts/PostsPage";
+import useUser from "../../hooks/useUser";
+import { useForm } from "react-hook-form";
+import z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-const api = axios.create({
-  baseURL: "http://localhost:3000",
+const schema = z.object({
+  fullName: z.string().min(1, "Full Name is required"),
+  userName: z.string().min(1, "User Name is required"),
 });
 
-const UserProfile: FC<{ user: IUser; onChangeUser: (user: IUser) => void }> = ({ user, onChangeUser }) => {
+type FormData = z.infer<typeof schema>;
+
+const UserProfile: FC = () => {
+  const { user: fetchedUser, isLoading: userLoading, error: userError, updateUser } = useUser();
   const [editMode, setEditMode] = useState(false);
-  const [userData, setUserData] = useState<IUser>(user);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [file, setFile] = useState<File | null>(null);
+  const [userData, setUserData] = useState<IUser>(fetchedUser || INTINAL_DATA_USER);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // TODO : this error i loading and all the api calling is reptitve maybe extract to somwhere
+  const { register, handleSubmit, formState, setValue } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      fullName: userData.fullName,
+      userName: userData.userName,
+      email: userData.email,
+    },
+  });
+
+  useEffect(() => {
+    if (fetchedUser) {
+      setUserData(fetchedUser);
+      setValue("fullName", fetchedUser.fullName);
+      setValue("userName", fetchedUser.userName);
+      setValue("email", fetchedUser.email);
+    }
+  }, [fetchedUser, setValue]);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
-    console.log("file ", selectedFile);
 
     if (selectedFile) {
-      // Validate file type (only images allowed)
       const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 
       if (!validImageTypes.includes(selectedFile.type)) {
@@ -34,8 +54,8 @@ const UserProfile: FC<{ user: IUser; onChangeUser: (user: IUser) => void }> = ({
         return;
       }
       const formData = new FormData();
-      formData.append("file", selectedFile); // Attach the file
-      formData.append("userId", userData._id ?? ""); // Attach userId as a string
+      formData.append("file", selectedFile);
+      formData.append("userId", userData._id ?? "");
 
       try {
         const response = await axios.post("http://localhost:3000/file", formData, {
@@ -45,145 +65,99 @@ const UserProfile: FC<{ user: IUser; onChangeUser: (user: IUser) => void }> = ({
         });
 
         console.log("File uploaded successfully:", response.data);
-        onChangeUser(response.data.user); // this is not updating the user profil pic in the side bar
+        setUserData(response.data.user);
       } catch (error) {
         console.error("Error uploading file:", error);
       }
-
-      setFile(selectedFile);
     }
   };
 
-  useEffect(() => {
-    const user = localStorage.getItem("user"); //TODO: maybe hook
-    if (user) {
-      const userObj: IUser = JSON.parse(user);
-      setUserData(userObj);
-    }
-  }, []);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUserData({ ...userData, [e.target.name]: e.target.value });
-  };
-
-  const onSave = async (userData: IUser) => {
-    try {
-      setIsLoading(true);
-
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        console.error("No access token found");
-        setIsLoading(false);
-        return;
-      }
-
-      const response = await api.put(`/users/${userData._id}`, userData, {
-        headers: {
-          Authorization: `JWT ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      setIsLoading(false);
-      localStorage.setItem("user", JSON.stringify(response.data));
-      onChangeUser(response.data);
-      return response.data;
-    } catch (error: unknown) {
-      setIsLoading(false);
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("An unknown error occurred");
-      }
-
-      return null;
+  const handleSave = async (data: FormData) => {
+    const updatedUser = await updateUser({ ...userData, ...data });
+    if (updatedUser) {
+      setUserData(updatedUser);
+      setEditMode(false);
     }
   };
 
-  const handleSave = () => {
-    onSave(userData);
-    setEditMode(false);
-  };
-  //TODO: add validtion to the edit i was able to remove the email and the user name not good!
-  // I dont understand how it is posible since there is some validtion in the BE
   return (
-    <div className={UserProfileStyle.pageContainer}>
-      <div className={UserProfileStyle.profileContainer}>
-        <div>
-          {error && <p>{error}</p>}
-          {isLoading ? (
-            <Loader />
-          ) : (
-            <div className={UserProfileStyle.userInfo}>
-              {editMode ? (
-                <>
-                  <div className={UserProfileStyle.formGroup}>
-                    <label>Full Name:</label>
-                    <input type="text" name="fullName" value={userData.fullName} onChange={handleChange} />
-                  </div>
-
-                  <div className={UserProfileStyle.formGroup}>
-                    <label>Username:</label>
-                    <input type="text" name="userName" value={userData.userName} onChange={handleChange} />
-                  </div>
-
-                  <div className={UserProfileStyle.formGroup}>
-                    <label>Email:</label>
-                    <input type="email" name="email" value={userData.email} onChange={handleChange} />
-                  </div>
-
-                  <div className={UserProfileStyle.formGroup}>
-                    <label>Password:</label>
-                    <input type="password" name="password" value={userData.password} onChange={handleChange} />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <h2>{userData.fullName}</h2>
-                  <p>User Name: {userData.userName}</p>
-                  <p>Email: {userData.email}</p>
-                  <p>Password: *******</p>
-                </>
-              )}
-
-              <div className={UserProfileStyle.buttonContainer}>
+    <>
+      <div className={UserProfileStyle.pageContainer}>
+        <div className={UserProfileStyle.profileContainer}>
+          <div>
+            {userError && editMode && <p>{userError}</p>}
+            {userLoading ? (
+              <Loader />
+            ) : (
+              <div className={UserProfileStyle.userInfo}>
                 {editMode ? (
-                  <button className={UserProfileStyle.saveBtn} onClick={handleSave}>
-                    Save
-                  </button>
+                  <form onSubmit={handleSubmit(handleSave)}>
+                    <div className={UserProfileStyle.formGroup}>
+                      <label>Full Name:</label>
+                      <input type="text" {...register("fullName")} />
+                    </div>
+
+                    <div className={UserProfileStyle.formGroup}>
+                      <label>Username:</label>
+                      <input type="text" {...register("userName")} />
+                    </div>
+
+                    <p>Email: {userData.email}</p>
+
+                    <div className={UserProfileStyle.buttonContainer}>
+                      <button type="submit" className={UserProfileStyle.saveBtn}>
+                        Save
+                      </button>
+                    </div>
+
+                    <div>
+                      {formState.errors.fullName && (
+                        <>
+                          <div className="text-danger">{formState.errors.fullName.message}</div>
+                          <div className="text-danger">{formState.errors.userName.message}</div>
+                        </>
+                      )}
+                    </div>
+                  </form>
                 ) : (
-                  <button className={UserProfileStyle.editBtn} onClick={() => setEditMode(true)}>
-                    Edit
-                  </button>
+                  <>
+                    <h2>{userData.fullName}</h2>
+                    <p>User Name: {userData.userName}</p>
+                    <p>Email: {userData.email}</p>
+
+                    <div className={UserProfileStyle.buttonContainer}>
+                      <button className={UserProfileStyle.editBtn} onClick={() => setEditMode(true)}>
+                        Edit
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
+            )}
+          </div>
+          <div className={UserProfileStyle.imageContainer}>
+            <div style={{ display: "flex", justifyContent: "center", position: "relative" }}>
+              <img src={userData.imgUrl ? userData.imgUrl : Avatar} alt="User" className={UserProfileStyle.profilePic} />
+
+              <input
+                className={UserProfileStyle.uploadPicInput}
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                onChange={handleFileChange}
+              />
+
+              <FontAwesomeIcon
+                className={UserProfileStyle.uploadPicIcon}
+                onClick={() => fileInputRef.current?.click()}
+                icon={faImage}
+              />
             </div>
-          )}
-        </div>
-        <div className={UserProfileStyle.imageContainer}>
-          <div style={{ display: "flex", justifyContent: "center", position: "relative" }}>
-            {/* Show selected image preview */}
-            <img src={file ? URL.createObjectURL(file) : Avatar} alt="User" className={UserProfileStyle.profilePic} />
-
-            {/* Hidden file input */}
-            <input
-              className={UserProfileStyle.uploadPicInput}
-              type="file"
-              ref={fileInputRef}
-              accept="image/*"
-              onChange={handleFileChange}
-            />
-
-            {/* Clickable icon to trigger file selection */}
-            <FontAwesomeIcon
-              className={UserProfileStyle.uploadPicIcon}
-              onClick={() => fileInputRef.current?.click()}
-              icon={faImage}
-            />
           </div>
         </div>
       </div>
-    </div>
+      <PostsPage userPosts={true} />
+    </>
   );
 };
 

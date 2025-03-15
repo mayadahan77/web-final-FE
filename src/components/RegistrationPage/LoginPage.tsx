@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import axios from "axios";
 import LoginPageStyle from "./LoginPage.module.css";
 import { useNavigate } from "react-router-dom";
@@ -6,12 +6,13 @@ import { useForm } from "react-hook-form";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
+import useUser from "../../hooks/useUser";
+import Loader from "../Loader";
 
 const schema = z.object({
-  email: z.string().email("Invalid email").min(1, "Email is required"),
+  emailOrUserName: z.string().min(1, "Email or User Name is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
-
 type FormData = z.infer<typeof schema>;
 
 const api = axios.create({
@@ -20,57 +21,65 @@ const api = axios.create({
 
 const LoginPage: FC = () => {
   const { register, handleSubmit, formState } = useForm<FormData>({ resolver: zodResolver(schema) });
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
+  const { setUser } = useUser();
 
   const onSubmit = async (data: FormData) => {
+    setIsLoading(true);
+    setError(null);
     try {
       const response = await api.post("/auth/login", data);
       localStorage.setItem("accessToken", response.data.accessToken);
       localStorage.setItem("refreshToken", response.data.refreshToken);
       localStorage.setItem("user", JSON.stringify(response.data.user));
-
-      window.location.href = "/";
+      setUser(response.data.user);
+      navigate("/");
     } catch (error) {
-      console.error("Signup failed", error);
+      setError(error.response.data);
+      console.error("Login failed", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const googleResponseMessage = async (credentialResponse: CredentialResponse) => {
-    console.log("Google Error");
-    console.log(credentialResponse);
+    setIsLoading(true);
+    setError(null);
     try {
       const response = await api.post("/auth/googleSignin", { credential: credentialResponse });
       localStorage.setItem("accessToken", response.data.accessToken);
       localStorage.setItem("refreshToken", response.data.refreshToken);
       localStorage.setItem("user", JSON.stringify(response.data.user));
-
-      window.location.href = "/";
+      setUser(response.data.user);
+      navigate("/");
     } catch (error) {
-      console.error("Signup failed", error);
+      setError("Google login failed. Please try again.");
+      console.error("Google login failed", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const googleErrorMessage = () => {
+    setError("Google login failed. Please try again.");
     console.log("Google Error");
   };
-
-  //TODO: maybe esxtract the form part of the signup page ant the edit user to a diffret component beacuse it is the same baysicly
 
   return (
     <div className={LoginPageStyle.Container}>
       <div className={LoginPageStyle.Box}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <h2>Login</h2>
-          <div className={LoginPageStyle.error}>
-            {formState.errors.email && <div className="text-danger">{formState.errors.email.message}</div>}
-          </div>
+          {error && <div className="text-danger">{error}</div>}
           <div className={LoginPageStyle.formGroup}>
-            <label>Email:</label>
+            <label>Email / User Name:</label>
             <input
-              id="email"
+              id="emailOrUserName"
               type="text"
               placeholder="Email"
-              {...register("email")}
+              {...register("emailOrUserName")}
               className={LoginPageStyle.inputField}
             />
           </div>
@@ -87,10 +96,12 @@ const LoginPage: FC = () => {
               className={LoginPageStyle.inputField}
             />
           </div>
-          <button type="submit" className={LoginPageStyle.Button}>
-            login
+          <button type="submit" className={LoginPageStyle.Button} disabled={isLoading}>
+            {isLoading ? <Loader /> : "Login"}
           </button>
-          <GoogleLogin onSuccess={googleResponseMessage} onError={googleErrorMessage} />
+          <div className={LoginPageStyle.Google}>
+            <GoogleLogin onSuccess={googleResponseMessage} onError={googleErrorMessage} />
+          </div>
         </form>
         <div onClick={() => navigate("/SignUp")} className={LoginPageStyle.herf}>
           SignUp

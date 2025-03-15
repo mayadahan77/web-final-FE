@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import useUser from "../../hooks/useUser";
 
 const schema = z.object({
   email: z.string().email("Invalid email").min(1, "Email is required"),
@@ -22,6 +23,7 @@ const api = axios.create({
 const SignUpPage: FC = () => {
   const { register, handleSubmit, formState } = useForm<FormData>({ resolver: zodResolver(schema) });
   const navigate = useNavigate();
+  const { setUser } = useUser();
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -29,12 +31,12 @@ const SignUpPage: FC = () => {
       localStorage.setItem("accessToken", response.data.accessToken);
       localStorage.setItem("refreshToken", response.data.refreshToken);
       localStorage.setItem("user", JSON.stringify(response.data));
-      window.location.href = "/";
+      setUser(response.data);
+      navigate("/");
     } catch (error) {
       console.error("Signup failed", error);
     }
   };
-  //TODO: maybe esxtract the form part of the signup page ant the edit user to a diffret component beacuse it is the same baysicly
 
   return (
     <div className={LoginPageStyle.Container}>
