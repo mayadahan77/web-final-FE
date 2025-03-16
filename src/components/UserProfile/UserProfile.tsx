@@ -58,7 +58,7 @@ const UserProfile: FC = () => {
       formData.append("userId", userData._id ?? "");
 
       try {
-        const response = await axios.post("http://localhost:3000/file", formData, {
+        const response = await axios.post("http://localhost:80/file", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
