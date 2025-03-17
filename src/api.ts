@@ -1,9 +1,12 @@
 import axios from "axios";
 import { IUser } from "./Interfaces";
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
 const api = axios.create({
-  baseURL: "http://193.106.55.215:80",
+  baseURL: backendURL,
 });
+
 api.interceptors.request.use(
   async (config) => {
     const accessToken = localStorage.getItem("accessToken");

@@ -15,8 +15,10 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
 const api = axios.create({
-  baseURL: "http://193.106.55.215:80",
+  baseURL: backendURL,
 });
 
 const LoginPage: FC = () => {
