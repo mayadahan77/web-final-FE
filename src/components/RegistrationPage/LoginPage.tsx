@@ -1,5 +1,5 @@
 import { FC, useState } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import LoginPageStyle from "./LoginPage.module.css";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -16,7 +16,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const api = axios.create({
-  baseURL: "http://localhost:80",
+  baseURL: "http://193.106.55.215:80",
 });
 
 const LoginPage: FC = () => {
@@ -36,8 +36,12 @@ const LoginPage: FC = () => {
       localStorage.setItem("user", JSON.stringify(response.data.user));
       setUser(response.data.user);
       navigate("/");
-    } catch (error) {
-      setError(error.response.data);
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        setError(error.response?.data ?? "An unknown error occurred");
+      } else {
+        setError("An unexpected error occurred");
+      }
       console.error("Login failed", error);
     } finally {
       setIsLoading(false);

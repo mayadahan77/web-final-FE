@@ -1,57 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import { IComments } from "../Interfaces";
-
-const api = axios.create({
-  baseURL: "http://localhost:80",
-});
-
-api.interceptors.request.use(
-  async (config) => {
-    const accessToken = localStorage.getItem("accessToken");
-    if (accessToken) {
-      config.headers.Authorization = `JWT ${accessToken}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  async (error) => {
-    const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      const refreshToken = localStorage.getItem("refreshToken");
-      const response = await api.post("/refresh", { token: refreshToken });
-      const newAccessToken = response.data.accessToken;
-      localStorage.setItem("accessToken", newAccessToken);
-      api.defaults.headers.common["Authorization"] = `JWT ${newAccessToken}`;
-      return api(originalRequest);
-    }
-    return Promise.reject(error);
-  }
-);
-
-const commentService = {
-  getComments: (postId: string, skip: number, limit: number) => {
-    return api.get(`/comments/post/${postId}?skip=${skip}&limit=${limit}`);
-  },
-  addComment: (postId: string, content: string) => {
-    return api.post(`/comments`, { postId, content });
-  },
-  updateComment: (commentId: string, content: string) => {
-    return api.put(`/comments/${commentId}`, { content });
-  },
-  deleteComment: (commentId: string) => {
-    return api.delete(`/comments/${commentId}`);
-  },
-};
+import { commentService } from "../api";
 
 const useComments = (postId: string) => {
   const [comments, setComments] = useState<IComments[]>([]);

@@ -1,57 +1,13 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import { IUser } from "../Interfaces";
 import { useUser as useUserContext } from "../context/UserContext";
+import { userService } from "../api";
+import axios, { AxiosError } from "axios";
 
 export interface UserContextType {
   user: IUser | null;
   setUser: React.Dispatch<React.SetStateAction<IUser | null>>;
 }
-
-const api = axios.create({
-  baseURL: "http://localhost:80",
-});
-
-api.interceptors.request.use(
-  async (config) => {
-    const accessToken = localStorage.getItem("accessToken");
-    if (accessToken) {
-      config.headers.Authorization = `JWT ${accessToken}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  async (error) => {
-    const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      const refreshToken = localStorage.getItem("refreshToken");
-      const response = await api.post("/refresh", { token: refreshToken });
-      const newAccessToken = response.data.accessToken;
-      localStorage.setItem("accessToken", newAccessToken);
-      api.defaults.headers.common["Authorization"] = `JWT ${newAccessToken}`;
-      return api(originalRequest);
-    }
-    return Promise.reject(error);
-  }
-);
-
-const userService = {
-  updateUser: (userData: IUser) => {
-    return api.put<IUser>(`/users/${userData._id}`, userData);
-  },
-  getUser: (userId: string) => {
-    return api.get<IUser>(`/users/${userId}`);
-  },
-};
 
 const useUser = (data?: IUser) => {
   const { user, setUser } = useUserContext();
@@ -104,8 +60,8 @@ const useUser = (data?: IUser) => {
       setIsLoading(false);
       return response.data;
     } catch (error) {
-      if (error instanceof Error) {
-        if (error.response.data.codeName == "DuplicateKey") {
+      if (error instanceof AxiosError) {
+        if (error.response?.data.codeName == "DuplicateKey") {
           setError("User Name already in use");
         } else {
           setError(error.message);

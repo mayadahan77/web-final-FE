@@ -17,7 +17,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const api = axios.create({
-  baseURL: "http://localhost:80",
+  baseURL: "http://193.106.55.215:80",
 });
 
 const SignUpPage: FC = () => {

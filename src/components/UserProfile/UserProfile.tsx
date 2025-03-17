@@ -30,7 +30,6 @@ const UserProfile: FC = () => {
     defaultValues: {
       fullName: userData.fullName,
       userName: userData.userName,
-      email: userData.email,
     },
   });
 
@@ -39,7 +38,6 @@ const UserProfile: FC = () => {
       setUserData(fetchedUser);
       setValue("fullName", fetchedUser.fullName);
       setValue("userName", fetchedUser.userName);
-      setValue("email", fetchedUser.email);
     }
   }, [fetchedUser, setValue]);
 
@@ -114,7 +112,7 @@ const UserProfile: FC = () => {
                       {formState.errors.fullName && (
                         <>
                           <div className="text-danger">{formState.errors.fullName.message}</div>
-                          <div className="text-danger">{formState.errors.userName.message}</div>
+                          <div className="text-danger">{formState.errors.userName?.message}</div>
                         </>
                       )}
                     </div>
