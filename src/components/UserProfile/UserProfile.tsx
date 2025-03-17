@@ -2,7 +2,6 @@ import { FC, useEffect, useRef, useState } from "react";
 import UserProfileStyle from "./UserProfile.module.css";
 import Avatar from "../../assets/avatar.png";
 import { INTINAL_DATA_USER, IUser } from "../../Interfaces";
-import axios from "axios";
 import Loader from "../Loader";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faImage } from "@fortawesome/free-solid-svg-icons";
@@ -11,6 +10,7 @@ import useUser from "../../hooks/useUser";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { fileService } from "../../api";
 
 const schema = z.object({
   fullName: z.string().min(1, "Full Name is required"),
@@ -56,11 +56,7 @@ const UserProfile: FC = () => {
       formData.append("userId", userData._id ?? "");
 
       try {
-        const response = await axios.post("http://localhost:80/file", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        const response = await fileService.uploadFile(formData);
 
         console.log("File uploaded successfully:", response.data);
         setUserData(response.data.user);

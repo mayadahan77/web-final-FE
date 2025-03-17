@@ -39,6 +39,16 @@ api.interceptors.response.use(
   }
 );
 
+export const fileService = {
+  uploadFile: (formData: FormData) => {
+    return api.post("/file", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+};
+
 export const userService = {
   updateUser: (userData: IUser) => {
     return api.put<IUser>(`/users/${userData._id}`, userData);
