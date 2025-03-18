@@ -3,10 +3,17 @@
   height: 100vh; 
 }
 
-.main {
-  margin-left: 250px; 
-  flex: 1; 
-  padding: 20px; 
+.authenticatedMain {
+  margin-left: 250px;
+  flex: 1;
+  padding: 20px;
+}
+
+.unauthenticatedMain {
+  margin: 0 auto;
+  flex: 1;
+  padding: 20px;
+  max-width: 600px;
 }
 
 .sidenav {
