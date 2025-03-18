@@ -51,6 +51,7 @@ const UserProfile: FC = () => {
         alert("Invalid file type! Please select an image (JPEG, PNG, GIF, WebP).");
         return;
       }
+
       const formData = new FormData();
       formData.append("file", selectedFile);
       formData.append("userId", userData._id ?? "");
@@ -58,8 +59,18 @@ const UserProfile: FC = () => {
       try {
         const response = await fileService.uploadFile(formData);
 
-        console.log("File uploaded successfully:", response.data);
-        setUserData(response.data.user);
+        console.log("File uploaded successfully:", response.data.user);
+
+        // Update the global state or backend
+        setUserData((prevUserData) => ({
+          ...prevUserData,
+          imgUrl: response.data.user.imgUrl,
+        }));
+
+        // If using a global state, update it here
+        if (updateUser) {
+          await updateUser(response.data.user);
+        }
       } catch (error) {
         console.error("Error uploading file:", error);
       }
@@ -132,7 +143,6 @@ const UserProfile: FC = () => {
           <div className={UserProfileStyle.imageContainer}>
             <div style={{ display: "flex", justifyContent: "center", position: "relative" }}>
               <img src={userData.imgUrl ? userData.imgUrl : Avatar} alt="User" className={UserProfileStyle.profilePic} />
-
               <input
                 className={UserProfileStyle.uploadPicInput}
                 type="file"
@@ -140,7 +150,6 @@ const UserProfile: FC = () => {
                 accept="image/*"
                 onChange={handleFileChange}
               />
-
               <FontAwesomeIcon
                 className={UserProfileStyle.uploadPicIcon}
                 onClick={() => fileInputRef.current?.click()}

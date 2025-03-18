@@ -24,13 +24,13 @@ const PostsPage: FC<{ userPosts: boolean }> = ({ userPosts }) => {
       if (isLoading) return;
       if (observer.current) observer.current.disconnect();
       observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && posts.length < totalPosts) {
+        if (entries[0].isIntersecting && posts?.length < totalPosts) {
           setPage((prevPage) => prevPage + 1);
         }
       });
       if (node) observer.current.observe(node);
     },
-    [isLoading, posts.length, totalPosts]
+    [isLoading, posts?.length, totalPosts]
   );
 
   useEffect(() => {
