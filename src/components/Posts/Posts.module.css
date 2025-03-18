@@ -16,6 +16,13 @@
   gap: 10px;
 }
 
+.loaderContiner{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
 .PageHeader{
   display: flex;
   justify-content: space-between;

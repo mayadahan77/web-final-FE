@@ -35,7 +35,8 @@ const PostsPage: FC<{ userPosts: boolean; refreshTrigger?: boolean }> = ({ userP
 
   useEffect(() => {
     if (user?._id) {
-      fetchPosts(page * 10, 10, myPosts ? user._id : undefined, page > 0);
+      const limit = 10;
+      fetchPosts(page * limit, limit, myPosts ? user._id : undefined, page > 0);
     }
   }, [myPosts, user?._id, page, refreshTrigger]);
 
@@ -44,7 +45,7 @@ const PostsPage: FC<{ userPosts: boolean; refreshTrigger?: boolean }> = ({ userP
   };
 
   return (
-    <div>
+    <div className={isLoading && page === 0 ? PostsPageStyle.loaderContiner : ""}>
       {error && <p className={PostsPageStyle.error}>{error}</p>}
       {isLoading && page === 0 ? (
         <Loader />
