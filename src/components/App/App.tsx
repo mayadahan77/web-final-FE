@@ -30,7 +30,7 @@ function App() {
             <Sidenav />
           </div>
         )}
-        <div className={AppStyle.main}>
+        <div className={isAuthenticated ? AppStyle.authenticatedMain : AppStyle.unauthenticatedMain}>
           <Routes>
             {isAuthenticated ? (
               <>

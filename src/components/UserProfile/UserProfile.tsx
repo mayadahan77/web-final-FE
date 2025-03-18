@@ -2,7 +2,6 @@ import { FC, useEffect, useRef, useState } from "react";
 import UserProfileStyle from "./UserProfile.module.css";
 import Avatar from "../../assets/avatar.png";
 import { INTINAL_DATA_USER, IUser } from "../../Interfaces";
-import axios from "axios";
 import Loader from "../Loader";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faImage } from "@fortawesome/free-solid-svg-icons";
@@ -11,6 +10,7 @@ import useUser from "../../hooks/useUser";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { fileService } from "../../api";
 
 const schema = z.object({
   fullName: z.string().min(1, "Full Name is required"),
@@ -23,6 +23,7 @@ const UserProfile: FC = () => {
   const { user: fetchedUser, isLoading: userLoading, error: userError, updateUser } = useUser();
   const [editMode, setEditMode] = useState(false);
   const [userData, setUserData] = useState<IUser>(fetchedUser || INTINAL_DATA_USER);
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { register, handleSubmit, formState, setValue } = useForm<FormData>({
@@ -30,7 +31,6 @@ const UserProfile: FC = () => {
     defaultValues: {
       fullName: userData.fullName,
       userName: userData.userName,
-      email: userData.email,
     },
   });
 
@@ -39,7 +39,6 @@ const UserProfile: FC = () => {
       setUserData(fetchedUser);
       setValue("fullName", fetchedUser.fullName);
       setValue("userName", fetchedUser.userName);
-      setValue("email", fetchedUser.email);
     }
   }, [fetchedUser, setValue]);
 
@@ -53,19 +52,27 @@ const UserProfile: FC = () => {
         alert("Invalid file type! Please select an image (JPEG, PNG, GIF, WebP).");
         return;
       }
+
       const formData = new FormData();
       formData.append("file", selectedFile);
       formData.append("userId", userData._id ?? "");
 
       try {
-        const response = await axios.post("http://localhost:3000/file", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        const response = await fileService.uploadFile(formData);
 
-        console.log("File uploaded successfully:", response.data);
-        setUserData(response.data.user);
+        console.log("File uploaded successfully:", response.data.user);
+
+        // Update the global state or backend
+        setUserData((prevUserData) => ({
+          ...prevUserData,
+          imgUrl: response.data.user.imgUrl,
+        }));
+
+        // If using a global state, update it here
+        if (updateUser) {
+          setRefreshTrigger((prev) => !prev); // Toggle the boolean
+          await updateUser(response.data.user);
+        }
       } catch (error) {
         console.error("Error uploading file:", error);
       }
@@ -77,6 +84,7 @@ const UserProfile: FC = () => {
     if (updatedUser) {
       setUserData(updatedUser);
       setEditMode(false);
+      setRefreshTrigger((prev) => !prev); // Toggle the boolean
     }
   };
 
@@ -114,7 +122,7 @@ const UserProfile: FC = () => {
                       {formState.errors.fullName && (
                         <>
                           <div className="text-danger">{formState.errors.fullName.message}</div>
-                          <div className="text-danger">{formState.errors.userName.message}</div>
+                          <div className="text-danger">{formState.errors.userName?.message}</div>
                         </>
                       )}
                     </div>
@@ -138,7 +146,6 @@ const UserProfile: FC = () => {
           <div className={UserProfileStyle.imageContainer}>
             <div style={{ display: "flex", justifyContent: "center", position: "relative" }}>
               <img src={userData.imgUrl ? userData.imgUrl : Avatar} alt="User" className={UserProfileStyle.profilePic} />
-
               <input
                 className={UserProfileStyle.uploadPicInput}
                 type="file"
@@ -146,7 +153,6 @@ const UserProfile: FC = () => {
                 accept="image/*"
                 onChange={handleFileChange}
               />
-
               <FontAwesomeIcon
                 className={UserProfileStyle.uploadPicIcon}
                 onClick={() => fileInputRef.current?.click()}
@@ -156,7 +162,7 @@ const UserProfile: FC = () => {
           </div>
         </div>
       </div>
-      <PostsPage userPosts={true} />
+      <PostsPage userPosts={true} refreshTrigger={refreshTrigger} /> {/* Pass the boolean */}
     </>
   );
 };

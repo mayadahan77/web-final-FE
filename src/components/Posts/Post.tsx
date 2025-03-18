@@ -25,10 +25,10 @@ const Post = forwardRef<HTMLDivElement, { currentPost: IPost; withActions: boole
           ? post.usersIdLikes.filter((id) => id !== user?._id)
           : [...post.usersIdLikes, user?._id];
 
-        await updatePost(post._id, { usersIdLikes: updatedLikes });
+        await updatePost(post._id, { usersIdLikes: updatedLikes.filter((id): id is string => !!id) });
         setPost((prevPost) => ({
           ...prevPost,
-          usersIdLikes: updatedLikes,
+          usersIdLikes: updatedLikes.filter((id): id is string => !!id),
         }));
         setLike(!hasUserLike);
       } catch (error) {
