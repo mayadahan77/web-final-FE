@@ -70,6 +70,7 @@ const UserProfile: FC = () => {
 
         // If using a global state, update it here
         if (updateUser) {
+          setRefreshTrigger((prev) => !prev); // Toggle the boolean
           await updateUser(response.data.user);
         }
       } catch (error) {
