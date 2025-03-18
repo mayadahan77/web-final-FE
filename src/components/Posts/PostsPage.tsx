@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import usePost from "../../hooks/usePost";
 import useUser from "../../hooks/useUser";
 
-const PostsPage: FC<{ userPosts: boolean }> = ({ userPosts }) => {
+const PostsPage: FC<{ userPosts: boolean; refreshTrigger?: boolean }> = ({ userPosts, refreshTrigger }) => {
   const { posts, totalPosts, error, isLoading, fetchPosts, deletePost } = usePost();
   const [myPosts, setMyPosts] = useState<boolean>(userPosts);
   const [page, setPage] = useState<number>(0);
@@ -37,7 +37,7 @@ const PostsPage: FC<{ userPosts: boolean }> = ({ userPosts }) => {
     if (user?._id) {
       fetchPosts(page * 10, 10, myPosts ? user._id : undefined, page > 0);
     }
-  }, [myPosts, user?._id, page]);
+  }, [myPosts, user?._id, page, refreshTrigger]);
 
   const handleDeletePost = async (postId: string) => {
     await deletePost(postId);

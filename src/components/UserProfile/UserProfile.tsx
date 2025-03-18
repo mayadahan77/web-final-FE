@@ -23,6 +23,7 @@ const UserProfile: FC = () => {
   const { user: fetchedUser, isLoading: userLoading, error: userError, updateUser } = useUser();
   const [editMode, setEditMode] = useState(false);
   const [userData, setUserData] = useState<IUser>(fetchedUser || INTINAL_DATA_USER);
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { register, handleSubmit, formState, setValue } = useForm<FormData>({
@@ -82,6 +83,7 @@ const UserProfile: FC = () => {
     if (updatedUser) {
       setUserData(updatedUser);
       setEditMode(false);
+      setRefreshTrigger((prev) => !prev); // Toggle the boolean
     }
   };
 
@@ -159,7 +161,7 @@ const UserProfile: FC = () => {
           </div>
         </div>
       </div>
-      <PostsPage userPosts={true} />
+      <PostsPage userPosts={true} refreshTrigger={refreshTrigger} /> {/* Pass the boolean */}
     </>
   );
 };
