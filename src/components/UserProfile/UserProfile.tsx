@@ -24,6 +24,8 @@ const UserProfile: FC = () => {
   const [editMode, setEditMode] = useState(false);
   const [userData, setUserData] = useState<IUser>(fetchedUser || INTINAL_DATA_USER);
   const [refreshTrigger, setRefreshTrigger] = useState(false);
+  const [errorFile, setErrorFile] = useState<string | null>(null);
+  const [isLoadingFile, setIsLoadingFile] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { register, handleSubmit, formState, setValue } = useForm<FormData>({
@@ -58,6 +60,8 @@ const UserProfile: FC = () => {
       formData.append("userId", userData._id ?? "");
 
       try {
+        setIsLoadingFile(true);
+        setErrorFile(null);
         const response = await fileService.uploadFile(formData);
 
         console.log("File uploaded successfully:", response.data.user);
@@ -70,11 +74,13 @@ const UserProfile: FC = () => {
 
         // If using a global state, update it here
         if (updateUser) {
-          setRefreshTrigger((prev) => !prev); // Toggle the boolean
+          setRefreshTrigger((prev) => !prev);
           await updateUser(response.data.user);
         }
+        setIsLoadingFile(false);
       } catch (error) {
         console.error("Error uploading file:", error);
+        setErrorFile(error instanceof Error ? error.message : String(error));
       }
     }
   };
@@ -84,7 +90,7 @@ const UserProfile: FC = () => {
     if (updatedUser) {
       setUserData(updatedUser);
       setEditMode(false);
-      setRefreshTrigger((prev) => !prev); // Toggle the boolean
+      setRefreshTrigger((prev) => !prev);
     }
   };
 
@@ -92,9 +98,10 @@ const UserProfile: FC = () => {
     <>
       <div className={UserProfileStyle.pageContainer}>
         <div className={UserProfileStyle.profileContainer}>
-          <div>
+          <div className={userLoading || isLoadingFile ? UserProfileStyle.loaderContiner : ""}>
             {userError && editMode && <p>{userError}</p>}
-            {userLoading ? (
+            {errorFile && <p>{errorFile}</p>}
+            {userLoading || isLoadingFile ? (
               <Loader />
             ) : (
               <div className={UserProfileStyle.userInfo}>
@@ -162,7 +169,7 @@ const UserProfile: FC = () => {
           </div>
         </div>
       </div>
-      <PostsPage userPosts={true} refreshTrigger={refreshTrigger} /> {/* Pass the boolean */}
+      <PostsPage userPosts={true} refreshTrigger={refreshTrigger} />
     </>
   );
 };

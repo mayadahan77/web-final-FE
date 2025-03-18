@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { IPost } from "../Interfaces";
 import { postService } from "../api";
+import { toast } from "react-toastify";
 
 const usePost = () => {
   const [posts, setPosts] = useState<IPost[]>([]);
@@ -42,6 +43,7 @@ const usePost = () => {
       const response = await postService.createPost(data);
       setPosts((prevPosts) => [response.data, ...prevPosts]);
       setError(null);
+      toast.success("Post created successfully!");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Failed to create post");
     } finally {
@@ -55,6 +57,7 @@ const usePost = () => {
       const response = await postService.updatePost(postId, data);
       setPosts((prevPosts) => prevPosts.map((post) => (post._id === postId ? response.data : post)));
       setError(null);
+      toast.success("Post updated successfully!");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Failed to update post");
     } finally {
@@ -68,6 +71,7 @@ const usePost = () => {
       await postService.deletePost(postId);
       setPosts((prevPosts) => prevPosts.filter((post) => post._id !== postId));
       setError(null);
+      toast.success("Post deleted successfully!");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Failed to delete post");
     } finally {
@@ -81,6 +85,7 @@ const usePost = () => {
       const response = await postService.removeImage(postId);
       setPost(response.data);
       setError(null);
+      toast.success("Image deleted successfully!");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Failed to remove image");
     } finally {

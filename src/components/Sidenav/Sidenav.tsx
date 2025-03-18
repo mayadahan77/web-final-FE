@@ -14,7 +14,6 @@ const Sidenav: FC = () => {
     setUser(undefined);
 
     navigate("/login");
-    window.location.href = "/login";
   };
   return (
     <div className={SidenavStyle.container}>

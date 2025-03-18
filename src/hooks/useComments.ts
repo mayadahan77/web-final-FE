@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { IComments } from "../Interfaces";
 import { commentService } from "../api";
+import { toast } from "react-toastify";
 
 const useComments = (postId: string) => {
   const [comments, setComments] = useState<IComments[]>([]);
@@ -28,6 +29,7 @@ const useComments = (postId: string) => {
       const response = await commentService.addComment(postId, content);
       setComments((prevComments) => [...prevComments, response.data]);
       setError(null);
+      toast.success("Comment created successfully!");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Failed to add comment");
     } finally {
@@ -41,6 +43,7 @@ const useComments = (postId: string) => {
       const response = await commentService.updateComment(commentId, content);
       setComments((prevComments) => prevComments.map((comment) => (comment._id === commentId ? response.data : comment)));
       setError(null);
+      toast.success("Comment upadted successfully!");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Failed to update comment");
     } finally {
@@ -54,6 +57,7 @@ const useComments = (postId: string) => {
       await commentService.deleteComment(commentId);
       setComments((prevComments) => prevComments.filter((comment) => comment._id !== commentId));
       setError(null);
+      toast.success("Comment deleted successfully!");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Failed to delete comment");
     } finally {

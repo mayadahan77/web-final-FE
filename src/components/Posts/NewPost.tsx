@@ -6,8 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faImage, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import usePost from "../../hooks/usePost";
 
 const schema = z.object({
@@ -57,7 +55,6 @@ const NewPost: FC = () => {
       await removeImage(postId);
       setSelectedImage(null);
       setPreviewImage(null);
-      toast.success("Image deleted successfully!");
     }
   };
 
@@ -71,10 +68,8 @@ const NewPost: FC = () => {
 
     if (isEditing && postId) {
       await updatePost(postId, formData);
-      toast.success("Post updated successfully!");
     } else {
       await createPost(formData);
-      toast.success("Post created successfully!");
     }
 
     navigate("/");
@@ -82,7 +77,6 @@ const NewPost: FC = () => {
 
   return (
     <div className={NewPostStyle.Container}>
-      <ToastContainer />
       <div className={NewPostStyle.Box}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <h2>{isEditing ? "Edit Post" : "New Post"}</h2>

@@ -9,6 +9,8 @@ import { useEffect, useState } from "react";
 import NewPost from "../Posts/NewPost";
 import SinglePagePost from "../Posts/SinglePagePost";
 import useUser from "../../hooks/useUser";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -48,6 +50,7 @@ function App() {
             )}
           </Routes>
         </div>
+        <ToastContainer />
       </div>
     </Router>
   );

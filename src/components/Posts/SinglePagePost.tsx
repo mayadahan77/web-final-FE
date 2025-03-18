@@ -52,7 +52,8 @@ const SinglePagePost: FC = () => {
 
   useEffect(() => {
     if (post) {
-      fetchComments(currentPage * 10, 10, currentPage > 0);
+      const limit = 10;
+      fetchComments(currentPage * limit, limit, currentPage > 0);
     }
   }, [post, currentPage]);
 

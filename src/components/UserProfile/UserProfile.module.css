@@ -17,6 +17,12 @@
   gap: 10px;
 }
 
+.loaderContiner{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .imageContainer {
   display: flex;
   flex-direction: column;

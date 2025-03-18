@@ -3,6 +3,7 @@ import { IUser } from "../Interfaces";
 import { useUser as useUserContext } from "../context/UserContext";
 import { userService } from "../api";
 import axios, { AxiosError } from "axios";
+import { toast } from "react-toastify";
 
 export interface UserContextType {
   user: IUser | null;
@@ -58,6 +59,7 @@ const useUser = (data?: IUser) => {
       setUser(response.data);
       localStorage.setItem("user", JSON.stringify(response.data));
       setIsLoading(false);
+      toast.success("User updated successfully!");
       return response.data;
     } catch (error) {
       if (error instanceof AxiosError) {
